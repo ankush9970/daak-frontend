@@ -1,57 +1,33 @@
 import React from 'react';
 import { useAuth } from './AuthContext';
-import { useNavigate } from 'react-router-dom';
+import UploadDak from './UploadDak';
+import ForwardDak from './ForwardDak';
+import DakReports from './DakReports';
+import SendReminder from './SendReminder';
+import UserActions from './UserActions';
 
 export default function Dashboard() {
-  const navigate = useNavigate();
   const { user, logout } = useAuth();
-
   if (!user) return null;
 
-  const { name, role } = user;
+  const { name, role, permissions } = user;
+
+  const hasPermission = (p) => role === 'admin' || role === 'Admin' || permissions.includes('ALL') || permissions.includes(p);
 
   return (
-    <div className="min-h-screen p-8 bg-gray-100">
-      <div className="max-w-4xl mx-auto bg-white p-6 rounded shadow">
-        <h1 className="text-2xl font-bold mb-4">
-          Welcome, {name} ({role})
-        </h1>
+    <div className="p-8 bg-gray-100 min-h-screen">
+      <div className="max-w-5xl mx-auto bg-white p-6 rounded shadow">
+        <h1 className="text-2xl font-bold mb-4">Welcome {name} ({role})</h1>
+        <button className="px-4 py-2 mb-6 bg-red-500 text-white rounded" onClick={logout}>Logout</button>
 
-        <button
-          className="mb-6 px-4 py-2 bg-red-500 text-white rounded"
-          onClick={logout}
-        >
-          Logout
-        </button>
-
-        {role === 'admin' && (
-          <>
-            <Panel title="Admin Panel" desc="Manage everything (ALL permissions)" />
-            <Panel title="Head Panel" desc="Receive, forward, advise, report" />
-            <Panel title="Distributor Panel" desc="Upload, send reminders" />
-            <Panel title="User Panel" desc="Read, action, request advice, report" />
-          </>
-        )}
-
-        {role === 'head' && (
-          <Panel title="Head Panel" desc="Receive, forward, advise, report" />
-        )}
-
-        {role === 'distributor' && (
-          <Panel title="Distributor Panel" desc="Upload, send reminders" />
-        )}
-
-        {role === 'user' && (
-          <Panel title="User Panel" desc="Read, action, request advice, report" />
-        )}
+        {hasPermission('UPLOAD') && <UploadDak />}
+        {hasPermission('FORWARD') && <ForwardDak />}
+        {hasPermission('REPORT') && <DakReports />}
+        {hasPermission('REMINDER') && <SendReminder />}
+        {hasPermission('READ') && <UserActions />}
+        {hasPermission('ACTION') && <UserActions />}
+        {hasPermission('REQUEST_ADVICE') && <UserActions />}
       </div>
     </div>
   );
 }
-
-const Panel = ({ title, desc }) => (
-  <div className="mb-4 p-4 border rounded bg-gray-50">
-    <h2 className="text-xl font-semibold mb-2">{title}</h2>
-    <p>{desc}</p>
-  </div>
-);

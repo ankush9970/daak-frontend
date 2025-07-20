@@ -5,17 +5,18 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
-
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // When app loads: check token in localStorage
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
     const name = localStorage.getItem('name');
+    const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
 
     if (token && role && name) {
-      setUser({ token, role, name });
+      setUser({ token, role, name, permissions });
+    } else {
+      setUser(null); 
     }
   }, []);
 
@@ -32,5 +33,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Hook to use in any component
 export const useAuth = () => useContext(AuthContext);

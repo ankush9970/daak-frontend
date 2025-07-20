@@ -6,7 +6,6 @@ import { useAuth } from './AuthContext';
 export default function Login() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState('');
@@ -21,11 +20,13 @@ export default function Login() {
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('role', res.data.role);
       localStorage.setItem('name', res.data.name);
+      localStorage.setItem('permissions', JSON.stringify(res.data.permissions));
 
       setUser({
         token: res.data.token,
         role: res.data.role,
         name: res.data.name,
+        permissions: res.data.permissions,
       });
 
       navigate('/dashboard');

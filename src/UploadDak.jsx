@@ -1,0 +1,108 @@
+import React, { useState, useEffect } from 'react';
+import api from './api'; // Axios instance
+
+export default function UploadDak() {
+  const [files, setFiles] = useState([]);
+  const [receivedBy, setReceivedBy] = useState('');
+  const [source, setSource] = useState('mail');
+  const [msg, setMsg] = useState('');
+  const [heads, setHeads] = useState([]);
+
+  useEffect(() => {
+    const fetchHeads = async () => {
+      try {
+        const res = await api.get('/users/heads');
+        setHeads(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchHeads();
+  }, []);
+
+  const handleFiles = (e) => {
+    setFiles(Array.from(e.target.files));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMsg('');
+
+    if (!receivedBy) {
+      setMsg('Please select a Head user.');
+      return;
+    }
+
+    if (files.length === 0) {
+      setMsg('Please select at least one PDF.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('receivedBy', receivedBy);
+    formData.append('source', source);
+
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+
+    try {
+      const res = await api.post('/dak/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setMsg(res.data.message);
+    } catch (err) {
+      console.error(err);
+      setMsg(err.response?.data?.message || 'Upload failed');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="p-4 border rounded">
+      <h2 className="text-xl mb-2">Upload Multiple PDFs</h2>
+
+      <input
+        type="file"
+        multiple
+        accept="application/pdf"
+        onChange={handleFiles}
+        className="border p-2 mb-2 block"
+      />
+
+      <label className="block mb-1 font-semibold">Select Head User:</label>
+      <select
+        value={receivedBy}
+        onChange={(e) => setReceivedBy(e.target.value)}
+        className="border p-2 mb-2 block w-full"
+      >
+        <option value="">-- Select Head --</option>
+        {heads.map((head) => (
+          <option key={head._id} value={head._id}>
+            {head.name} ({head.email})
+          </option>
+        ))}
+      </select>
+
+      <label className="block mb-1 font-semibold">Source:</label>
+      <select
+        value={source}
+        onChange={(e) => setSource(e.target.value)}
+        className="border p-2 mb-2 block w-full"
+      >
+        <option value="mail">Mail</option>
+        <option value="scanned_pdf">Scanned PDF</option>
+      </select>
+
+      <button
+        type="submit"
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Upload PDFs
+      </button>
+
+      {msg && <p className="mt-2">{msg}</p>}
+    </form>
+  );
+}
