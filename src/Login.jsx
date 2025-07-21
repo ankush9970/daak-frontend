@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from './api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
@@ -9,6 +9,13 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState('');
+
+  useEffect(() => {
+    if (localStorage.getItem('token') && localStorage.getItem('name') && localStorage.getItem('role')) {
+      navigate('/dashboard');
+    }
+
+  }, [])
 
   const handleLogin = async (e) => {
     e.preventDefault();

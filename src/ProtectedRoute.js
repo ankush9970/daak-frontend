@@ -3,9 +3,13 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 export default function ProtectedRoute({ children }) {
-  const { user } = useAuth();
+  const { user, load } = useAuth();
 
-  if (!user || !user.token) {
+  if (load) {
+    return null;
+  }
+
+  if (!load && (!user || !user.token)) {
     return <Navigate to="/" replace />;
   }
 
