@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from './api';
+import Select from 'react-select';
+
 
 export default function ForwardDak() {
   const [dakId, setDakId] = useState('');
@@ -53,18 +55,14 @@ export default function ForwardDak() {
         <label className="block mb-1 font-semibold">Select Letter:</label>
 
 
-        <select
-          value={dakId}
-          onChange={(e) => setDakId(e.target.value)}
-          className="border p-2 mb-2 block w-full"
-        >
-          <option value="">-- Select Letter --</option>
-          {daks.map((dak) => (
-            <option key={dak._id} value={dak._id}>
-              {dak.name} ({dak.email})
-            </option>
-          ))}
-        </select>
+         <Select
+                options={dakId}
+                onChange={(selected) => setDakId(selected?.value)}
+                placeholder="Search Dak by Name..."
+                className="mb-4"
+              />
+
+        
 
         <label className="block mb-1 font-semibold">Select User:</label>
 

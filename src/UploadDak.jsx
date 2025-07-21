@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from './api'; 
+import Select from 'react-select';
 
 export default function UploadDak() {
   const [files, setFiles] = useState([]);
@@ -12,7 +13,12 @@ export default function UploadDak() {
     const fetchHeads = async () => {
       try {
         const res = await api.get('/users/heads');
-        setHeads(res.data);
+
+        const options = res.data.map((head) => ({
+          value: head._id,
+          label: head.name+' '+head.email,
+        }));
+        setHeads(options);
       } catch (err) {
         console.error(err);
       }
@@ -72,18 +78,12 @@ export default function UploadDak() {
       />
 
       <label className="block mb-1 font-semibold">Select Head User:</label>
-      <select
-        value={receivedBy}
-        onChange={(e) => setReceivedBy(e.target.value)}
-        className="border p-2 mb-2 block w-full"
-      >
-        <option value="">-- Select Head --</option>
-        {heads.map((head) => (
-          <option key={head._id} value={head._id}>
-            {head.name} ({head.email})
-          </option>
-        ))}
-      </select>
+      <Select
+              options={heads}
+              onChange={(selected) => setReceivedBy(selected?.value)}
+              placeholder="Search Head by Name or Mail..."
+              className="mb-4"
+            />
 
       <label className="block mb-1 font-semibold">Source:</label>
       <select
