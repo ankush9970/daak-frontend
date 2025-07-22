@@ -46,19 +46,19 @@ export default function DakReports() {
           <thead>
             <tr>
               <th className="border px-2 py-1">Dak ID</th>
-              <th className="border px-2 py-1">File</th>
+              <th className="border px-2 py-1">Subject</th>
               <th className="border px-2 py-1">Uploaded By</th>
-              <th className="border px-2 py-1">Received By</th>
+              <th className="border px-2 py-1">Forwarded To</th>
               <th className="border px-2 py-1">Status</th>
             </tr>
           </thead>
           <tbody>
             {reports.map((dak) => (
               <tr key={dak._id}>
-                <td className="border px-2 py-1">{dak._id}</td>
-                <td className="border px-2 py-1">{dak.filename}</td>
+                <td className="border px-2 py-1">{dak.mail_id}</td>
+                <td className="border px-2 py-1">{dak.subject}</td>
                 <td className="border px-2 py-1">{dak.uploadedBy?.name}</td>
-                <td className="border px-2 py-1">{dak.receivedBy?.name}</td>
+                <td className={dak.forwardedTo?.name?"border px-2 py-1":"border px-2 py-1 text-red-700"}>{dak.forwardedTo?.name?dak.forwardedTo?.name:'Not Forwardeds to anyone'}</td>
                 <td className="border px-2 py-1">{dak.status}</td>
               </tr>
             ))}

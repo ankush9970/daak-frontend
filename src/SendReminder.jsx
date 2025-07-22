@@ -14,7 +14,7 @@ export default function SendReminder() {
         const res = await api.get('/dak/list');
         const options = res.data.map((dak) => ({
           value: dak._id,
-          label: dak.filename,
+          label: dak.subject,
         }));
         setDakOptions(options);
       } catch (err) {
@@ -53,7 +53,7 @@ export default function SendReminder() {
       <Select
         options={dakOptions}
         onChange={(selected) => setDakId(selected?.value)}
-        placeholder="Search Dak by filename..."
+        placeholder="Search Dak by subject..."
         className="mb-4"
       />
 

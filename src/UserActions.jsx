@@ -119,7 +119,8 @@ export default function UserActions() {
         <table className="min-w-full text-left border mt-4">
           <thead>
             <tr>
-              <th className="border px-2 py-1">Dak ID</th>
+              <th className="border px-2 py-1">Daak ID</th>
+              <th className="border px-2 py-1">Daak Subject</th>
               <th className="border px-2 py-1">Uploaded By</th>
               <th className="border px-2 py-1">Status</th>
             </tr>
@@ -127,7 +128,8 @@ export default function UserActions() {
           <tbody>
             {reports.map((dak) => (
               <tr key={dak._id}>
-                <td className="border px-2 py-1">{dak._id}</td>
+                <td className="border px-2 py-1">{dak.mail_id}</td>
+                <td className="border px-2 py-1">{dak.subject}</td>
                 <td className="border px-2 py-1">{dak.uploadedBy?.name}</td>
                 <td className="border px-2 py-1">{dak.status}</td>
               </tr>

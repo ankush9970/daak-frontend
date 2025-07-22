@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from './api';
+import Select from 'react-select';
 
 export default function ForwardDak() {
   const [dakId, setDakId] = useState('');
@@ -14,7 +15,11 @@ export default function ForwardDak() {
     const fetchDaks = async () => {
       try {
         const res = await api.get('/dak/list');
-        setDaks(res.data);
+        const opt = res.data.map((dak) => ({
+          value: dak._id,
+          label: dak.subject,
+        }));
+        setDaks(opt);
       } catch (err) {
         console.error(err);
       }
@@ -24,7 +29,11 @@ export default function ForwardDak() {
     const fetchUsers = async () => {
       try {
         const res = await api.get('/users/users');
-        setUsers(res.data);
+        const opt = res.data.map((user) => ({
+          value: user._id,
+          label: user.name+' '+user.email
+        }));
+        setUsers(opt);
       } catch (err) {
         console.error(err);
       }
@@ -61,32 +70,23 @@ export default function ForwardDak() {
       <h2 className="text-xl mb-4">Forward Dak to User</h2>
 
       <label className="block mb-1 font-semibold">Select Dak:</label>
-      <select
-        value={dakId}
-        onChange={(e) => setDakId(e.target.value)}
-        className="border p-2 mb-4 w-full"
-      >
-        <option value="">-- Select Dak --</option>
-        {daks.map((dak) => (
-          <option key={dak._id} value={dak._id}>
-            {dak.filename}
-          </option>
-        ))}
-      </select>
+      
+
+      <Select
+        options={daks}
+        onChange={(selected) => setDakId(selected?.value)}
+        placeholder="Search Daak by subject..."
+        className="mb-4"
+      />
 
       <label className="block mb-1 font-semibold">Select User:</label>
-      <select
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-        className="border p-2 mb-4 w-full"
-      >
-        <option value="">-- Select User --</option>
-        {users.map((user) => (
-          <option key={user._id} value={user._id}>
-            {user.name} ({user.email})
-          </option>
-        ))}
-      </select>
+      
+      <Select
+        options={users}
+        onChange={(selected) => setUserId(selected?.value)}
+        placeholder="Search User by Name and Email Address..."
+        className="mb-4"
+      />
 
       <label className="block mb-1 font-semibold">Advice (optional):</label>
       <textarea
