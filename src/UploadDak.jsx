@@ -73,6 +73,7 @@ export default function UploadDak() {
         },
       });
       setMsg(res.data.message);
+      setId(Date.now());
     } catch (err) {
       console.error(err);
       setMsg(err.response?.data?.message || 'Upload failed');

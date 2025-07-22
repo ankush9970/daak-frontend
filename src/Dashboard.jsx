@@ -24,9 +24,9 @@ export default function Dashboard() {
         {hasPermission('FORWARD') && <ForwardDak />}
         {hasPermission('REPORT') && <DakReports />}
         {hasPermission('REMINDER') && <SendReminder />}
-        {(hasPermission('READ') && role !== 'user') && <UserActions />}
-        {(hasPermission('ACTION') && role !== 'user') && <UserActions />}
-        {hasPermission('REQUEST_ADVICE') && <UserActions />}
+        {(hasPermission('READ') || hasPermission('ACTION') || hasPermission('REQUEST_ADVICE')) && (
+          <UserActions />
+        )}
       </div>
     </div>
   );
