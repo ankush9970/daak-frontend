@@ -1,7 +1,8 @@
 // src/UserActions.jsx
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from './api';
+import Select from 'react-select';
 
 export default function UserActions() {
   const [dakId, setDakId] = useState('');
@@ -9,10 +10,36 @@ export default function UserActions() {
   const [advice, setAdvice] = useState('');
   const [msg, setMsg] = useState('');
   const [reports, setReports] = useState([]);
+  const [daks, setDaks] = useState('');
+
+  useEffect(() => {
+    const fetchDaak = async () => {
+      setMsg('');
+      try {
+        const res = await api.get('dak/user-reports')
+        const opt = res.data.map((dak) => ({
+          value: dak._id,
+          label: dak.subject
+        }));
+        setDaks(opt);
+      } catch (err) {
+        console.log(err);
+        setMsg('Error');
+      }
+    }
+
+
+    fetchDaak();
+
+  }, []);
 
   const markAction = async () => {
     setMsg('');
     try {
+      if (!dakId) {
+        setMsg('Dak ID is required');
+        return;
+      }
       await api.post('/dak/mark-action', { dakId, action });
       setMsg('Action marked successfully!');
     } catch (err) {
@@ -23,6 +50,10 @@ export default function UserActions() {
   const requestAdvice = async () => {
     setMsg('');
     try {
+      if (!dakId) {
+        setMsg('Dak ID is required');
+        return;
+      }
       await api.post('/dak/request-advice', { dakId, query: advice });
       setMsg('Advice request sent!');
     } catch (err) {
@@ -33,6 +64,10 @@ export default function UserActions() {
   const downloadDak = async () => {
     setMsg('');
     try {
+      if (!dakId) {
+        setMsg('Dak ID is required');
+        return;
+      }
       const res = await api.get(`/dak/download/${dakId}`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
@@ -62,13 +97,13 @@ export default function UserActions() {
       {msg && <p className="mb-2">{msg}</p>}
 
       <div className="mb-2">
-        <input
-          type="text"
-          placeholder="Dak ID"
-          value={dakId}
-          onChange={(e) => setDakId(e.target.value)}
-          className="border p-1 mr-2"
+        <Select
+          options={daks}
+          onChange={(selected) => setDakId(selected?.value)}
+          placeholder="Search Daak by subject..."
+          className="mb-4"
         />
+
         <input
           type="text"
           placeholder="Action"
