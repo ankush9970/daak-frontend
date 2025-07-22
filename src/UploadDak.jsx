@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from './api'; 
+import api from './api';
 import Select from 'react-select';
 
 export default function UploadDak() {
@@ -8,6 +8,8 @@ export default function UploadDak() {
   const [source, setSource] = useState('mail');
   const [msg, setMsg] = useState('');
   const [heads, setHeads] = useState([]);
+  const [id, setId] = useState(Date.now());
+  const [subject, setSubject] = useState('');
 
   useEffect(() => {
     const fetchHeads = async () => {
@@ -16,7 +18,7 @@ export default function UploadDak() {
 
         const options = res.data.map((head) => ({
           value: head._id,
-          label: head.name+' '+head.email,
+          label: head.name + ' ' + head.email,
         }));
         setHeads(options);
       } catch (err) {
@@ -39,6 +41,16 @@ export default function UploadDak() {
       return;
     }
 
+    if (!id) {
+      setMsg('Please enter a Id.');
+      return;
+    }
+
+    if (!subject) {
+      setMsg('Please enter Subject.');
+      return;
+    }
+
     if (files.length === 0) {
       setMsg('Please select at least one PDF.');
       return;
@@ -47,6 +59,8 @@ export default function UploadDak() {
     const formData = new FormData();
     formData.append('receivedBy', receivedBy);
     formData.append('source', source);
+    formData.append('mail_id', id);
+    formData.append('subject', subject);
 
     files.forEach((file) => {
       formData.append('files', file);
@@ -67,23 +81,44 @@ export default function UploadDak() {
 
   return (
     <form onSubmit={handleSubmit} className="p-4 border rounded">
-      <h2 className="text-xl mb-2">Upload Multiple PDFs</h2>
+      <div className='mb-2'>
+        <input
+          type="name"
+          id='id'
+          className="border p-1 mr-2 bg-gray-200"
+          value={id}
+          placeholder='ID'
+          required
+          readOnly
+        />
 
-      <input
-        type="file"
-        multiple
-        accept="application/pdf"
-        onChange={handleFiles}
-        className="border p-2 mb-2 block"
-      />
+        <input
+          type="name"
+          id='subject'
+          className="border p-1 mr-2"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          placeholder='Subject'
+        />
+
+        <h2 className="text-xl mb-2">Upload PDFs</h2>
+        <input
+          type="file"
+          multiple
+          accept="application/pdf"
+          onChange={handleFiles}
+          className="border p-2 mb-2 block"
+        />
+      </div>
+
 
       <label className="block mb-1 font-semibold">Select Head User:</label>
       <Select
-              options={heads}
-              onChange={(selected) => setReceivedBy(selected?.value)}
-              placeholder="Search Head by Name or Mail..."
-              className="mb-4"
-            />
+        options={heads}
+        onChange={(selected) => setReceivedBy(selected?.value)}
+        placeholder="Search Head by Name or Mail..."
+        className="mb-4"
+      />
 
       <label className="block mb-1 font-semibold">Source:</label>
       <select
