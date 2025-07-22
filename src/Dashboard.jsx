@@ -27,6 +27,17 @@ export default function Dashboard() {
         {(hasPermission('READ') || hasPermission('ACTION') || hasPermission('REQUEST_ADVICE')) && (
           <UserActions />
         )}
+        {/* exports.downloadFile = async (req, res) => {
+  const { fileId } = req.params;
+
+  const file = await UploadedFile.findById(fileId);
+  if (!file) {
+    return res.status(404).json({ message: 'File not found' });
+  }
+
+  const filePath = path.join(__dirname, '../uploads/', file.filename);
+  res.download(filePath, file.originalname);
+}; */}
       </div>
     </div>
   );
