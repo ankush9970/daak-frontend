@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import api from './api';
+import DakTracking from './DakTracking';
 
 export default function DakReports() {
   const [type, setType] = useState('sent');
@@ -11,7 +12,12 @@ export default function DakReports() {
     setMsg('');
     try {
       const res = await api.get(`/dak/report?type=${type}`);
-      setReports(res.data);
+      const opt = res.data;
+      await opt.sort((a,b,) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+      setReports(opt);
+
     } catch (err) {
       setMsg(err.response?.data?.message || 'Failed to load reports');
     }
@@ -50,6 +56,7 @@ export default function DakReports() {
               <th className="border px-2 py-1">Uploaded By</th>
               <th className="border px-2 py-1">Forwarded To</th>
               <th className="border px-2 py-1">Status</th>
+              <th className="border px-2 py-1">Track</th>
             </tr>
           </thead>
           <tbody>
@@ -60,6 +67,7 @@ export default function DakReports() {
                 <td className="border px-2 py-1">{dak.uploadedBy?.name}</td>
                 <td className={dak.forwardedTo?.name?"border px-2 py-1":"border px-2 py-1 text-red-700"}>{dak.forwardedTo?.name?dak.forwardedTo?.name:'Not Forwardeds to anyone'}</td>
                 <td className="border px-2 py-1">{dak.status}</td>
+                <td className="border px-2 py-1"><DakTracking dakId={dak._id} /></td>
               </tr>
             ))}
           </tbody>

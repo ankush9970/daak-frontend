@@ -18,7 +18,13 @@ export default function ForwardDak() {
         const opt = res.data.map((dak) => ({
           value: dak._id,
           label: dak.subject,
+          date: dak.createdAt,
         }));
+        
+        await opt.sort((a,b) => {
+          return new Date(b.date)-new Date(a.date);
+        })
+        
         setDaks(opt);
       } catch (err) {
         console.error(err);

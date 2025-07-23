@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import api from './api';
 import Select from 'react-select';
+import DakTracking from './DakTracking';
 
 export default function UserActions() {
   const [dakId, setDakId] = useState('');
@@ -158,6 +159,7 @@ export default function UserActions() {
               <th className="border px-2 py-1">Daak Subject</th>
               <th className="border px-2 py-1">Uploaded By</th>
               <th className="border px-2 py-1">Status</th>
+              <th className="border px-2 py-1">Track</th>
             </tr>
           </thead>
           <tbody>
@@ -167,6 +169,7 @@ export default function UserActions() {
                 <td className="border px-2 py-1">{dak.subject}</td>
                 <td className="border px-2 py-1">{dak.uploadedBy?.name}</td>
                 <td className="border px-2 py-1">{dak.status}</td>
+                <td className="border px-2 py-1"><DakTracking dakId={dak.s_id} /></td>
               </tr>
             ))}
           </tbody>

@@ -6,20 +6,29 @@ export default function DakTracking({ dakId }) {
 
   useEffect(() => {
     const fetchLogs = async () => {
-      const res = await api.get(`/dak/${dakId}/tracking`);
-      setLogs(res.data);
+      try {
+        const res = await api.get(`/dak/${dakId}/tracking`);
+        console.log(res.data);
+        const opt = res.data;
+        opt.sort((a, b) => {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        })
+        setLogs(opt);
+      } catch (err) {
+        console.log(err);
+      }
     };
     fetchLogs();
   }, [dakId]);
 
   return (
     <div className="p-4 border rounded">
-      <h2 className="text-lg font-bold mb-2">Dak Tracking Log</h2>
+      {/* <h2 className="text-lg font-bold mb-2">Dak Tracking Log</h2> */}
       {logs.map((log) => (
         <div key={log._id} className="mb-2">
           <p><strong>{log.action}</strong> by {log.actor.name}</p>
           <p className="text-sm">{log.details}</p>
-          <p className="text-xs text-gray-500">{new Date(log.createdAt).toLocaleString()}</p>
+          <p className="text-xs text-gray-500">{new Date(log.createdAt).toLocaleString('en-gb')}</p>
         </div>
       ))}
     </div>
