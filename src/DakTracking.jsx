@@ -3,6 +3,7 @@ import api from './api';
 
 export default function DakTracking({ dakId }) {
   const [logs, setLogs] = useState([]);
+  const [load, setLoad] = useState(true);
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -14,8 +15,11 @@ export default function DakTracking({ dakId }) {
           return new Date(b.createdAt) - new Date(a.createdAt);
         })
         setLogs(opt);
+        setLoad(false);
       } catch (err) {
         console.log(err);
+        setLoad(false);
+
       }
     };
     fetchLogs();
@@ -23,7 +27,7 @@ export default function DakTracking({ dakId }) {
 
   return (
     <div className="p-4 border rounded">
-      {/* <h2 className="text-lg font-bold mb-2">Dak Tracking Log</h2> */}
+      {load?<h2 className="text-m font-bold mb-2">Loading...</h2>:''}
       {logs.map((log) => (
         <div key={log._id} className="mb-2">
           <p><strong>{log.action}</strong> by {log.actor.name}</p>

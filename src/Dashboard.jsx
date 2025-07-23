@@ -5,6 +5,7 @@ import ForwardDak from './ForwardDak';
 import DakReports from './DakReports';
 import SendReminder from './SendReminder';
 import UserActions from './UserActions';
+import { Helmet } from 'react-helmet';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -15,7 +16,12 @@ export default function Dashboard() {
   const hasPermission = (p) => role === 'admin' || role === 'Admin' || permissions.includes('ALL') || permissions.includes(p);
 
   return (
+
     <div className="p-8 bg-gray-100 min-h-screen">
+      <Helmet>
+        <title>Dashboard Page</title>
+        <link rel="icon" type="image/png" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsssdWbIuSbfOfg1LQjH79ygkiPevVE8R-lw&s" sizes="16x16" />
+      </Helmet>
       <div className="max-w-5xl mx-auto bg-white p-6 rounded shadow">
         <h1 className="text-2xl font-bold mb-4">Welcome {name} ({role})</h1>
         <button className="px-4 py-2 mb-6 bg-red-500 text-white rounded" onClick={logout}>Logout</button>
@@ -27,7 +33,7 @@ export default function Dashboard() {
         {(hasPermission('READ') || hasPermission('ACTION') || hasPermission('REQUEST_ADVICE')) && (
           <UserActions />
         )}
-        
+
       </div>
     </div>
   );
