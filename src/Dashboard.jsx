@@ -19,7 +19,7 @@ export default function Dashboard() {
 
     <div className="p-8 bg-gray-100 min-h-screen">
       <Helmet>
-        <title>Dashboard Page</title>
+        <title>Dashboard</title>
         <link rel="icon" type="image/png" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsssdWbIuSbfOfg1LQjH79ygkiPevVE8R-lw&s" sizes="16x16" />
       </Helmet>
       <div className="max-w-5xl mx-auto bg-white p-6 rounded shadow">
