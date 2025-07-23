@@ -1,74 +1,72 @@
-// src/UserActions.jsx
-
 import React, { useEffect, useState } from 'react';
 import api from './api';
 import Select from 'react-select';
-import DakTracking from './DakTracking';
+import toast from 'react-hot-toast';
+import DataTable from 'react-data-table-component';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 export default function UserActions() {
   const [dakId, setDakId] = useState('');
   const [action, setAction] = useState('');
   const [advice, setAdvice] = useState('');
-  const [msg, setMsg] = useState('');
   const [reports, setReports] = useState([]);
-  const [daks, setDaks] = useState('');
+  const [daks, setDaks] = useState([]);
+  const [trackingLogs, setTrackingLogs] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [modalDakId, setModalDakId] = useState('');
 
   useEffect(() => {
-    const fetchDaak = async () => {
-      setMsg('');
+    const fetchDaks = async () => {
       try {
-        const res = await api.get('dak/user-reports')
-        const opt = res.data.map((dak) => ({
+        const res = await api.get('/dak/user-reports');
+        const options = res.data.map((dak) => ({
           value: dak._id,
-          label: dak.subject
+          label: `${dak.subject} (${dak.mail_id})`,
         }));
-        setDaks(opt);
+        setDaks(options);
       } catch (err) {
-        console.log(err);
-        setMsg('Error');
+        console.error(err);
+        toast.error('Failed to load Daks');
       }
-    }
-
-
-    fetchDaak();
-
+    };
+    fetchDaks();
   }, []);
 
   const markAction = async () => {
-    setMsg('');
+    if (!dakId || !action.trim()) {
+      toast.error('Dak and Action are required.');
+      return;
+    }
     try {
-      if (!dakId) {
-        setMsg('Dak ID is required');
-        return;
-      }
       await api.post('/dak/mark-action', { dakId, action });
-      setMsg('Action marked successfully!');
+      toast.success('Action marked successfully!');
+      setAction('');
     } catch (err) {
-      setMsg(err.response?.data?.message || 'Action failed');
+      toast.error(err.response?.data?.message || 'Action failed');
     }
   };
 
   const requestAdvice = async () => {
-    setMsg('');
+    if (!dakId || !advice.trim()) {
+      toast.error('Dak and Advice Query are required.');
+      return;
+    }
     try {
-      if (!dakId) {
-        setMsg('Dak ID is required');
-        return;
-      }
       await api.post('/dak/request-advice', { dakId, query: advice });
-      setMsg('Advice request sent!');
+      toast.success('Advice request sent!');
+      setAdvice('');
     } catch (err) {
-      setMsg(err.response?.data?.message || 'Advice request failed');
+      toast.error(err.response?.data?.message || 'Advice request failed');
     }
   };
 
   const downloadDak = async () => {
-    setMsg('');
+    if (!dakId) {
+      toast.error('Select a Dak first.');
+      return;
+    }
     try {
-      if (!dakId) {
-        setMsg('Dak ID is required');
-        return;
-      }
       const res = await api.get(`/dak/download/${dakId}`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
@@ -76,104 +74,175 @@ export default function UserActions() {
       link.setAttribute('download', `dak_${dakId}.pdf`);
       document.body.appendChild(link);
       link.click();
-      setMsg('Download started.');
+      toast.success('Download started.');
     } catch (err) {
-      setMsg(err.response?.data?.message || 'Download failed');
+      toast.error(err.response?.data?.message || 'Download failed');
     }
   };
 
   const getReports = async () => {
-    setMsg('');
     try {
       const res = await api.get('/dak/user-reports?type=received');
       setReports(res.data);
+      toast.success('Reports loaded!');
     } catch (err) {
-      setMsg(err.response?.data?.message || 'Reports load failed');
+      toast.error(err.response?.data?.message || 'Reports load failed');
     }
   };
 
-  return (
-    <div className="mb-4 p-4 border rounded bg-gray-50">
-      <h2 className="text-xl font-semibold mb-2">User Actions</h2>
-      {msg && <p className="mb-2">{msg}</p>}
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    doc.text('User Dak Reports', 14, 16);
+    const tableColumn = ["Daak ID", "Subject", "Uploaded By", "Status"];
+    const tableRows = [];
 
-      <div className="mb-2">
+    reports.forEach((dak) => {
+      const row = [
+        dak.mail_id,
+        dak.subject,
+        dak.uploadedBy?.name || 'N/A',
+        dak.status
+      ];
+      tableRows.push(row);
+    });
+
+    doc.autoTable(tableColumn, tableRows, { startY: 20 });
+    doc.save(`User_Dak_Reports_${new Date().getTime()}.pdf`);
+  };
+
+  const openTrackingModal = async (dakId) => {
+    try {
+      const res = await api.get(`/dak/${dakId}/tracking`);
+      const logs = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setTrackingLogs(logs);
+      setModalDakId(dakId);
+      setShowModal(true);
+    } catch (err) {
+      toast.error('Failed to load tracking logs');
+    }
+  };
+
+  const columns = [
+    { name: 'Daak ID', selector: row => row.mail_id, sortable: true },
+    { name: 'Subject', selector: row => row.subject, sortable: true },
+    { name: 'Uploaded By', selector: row => row.uploadedBy?.name || '', sortable: true },
+    { name: 'Status', selector: row => row.status, sortable: true },
+    {
+      name: 'Track',
+      cell: row => (
+        <button
+          onClick={() => openTrackingModal(row._id)}
+          className="text-blue-600 underline"
+        >
+           Track
+        </button>
+      ),
+    },
+  ];
+
+  return (
+    <div className="p-6 bg-white rounded shadow w-full">
+      <h2 className="text-2xl font-semibold mb-4">👤 User Actions</h2>
+
+      <div className="mb-4">
         <Select
           options={daks}
+          value={daks.find(opt => opt.value === dakId) || null}
           onChange={(selected) => setDakId(selected?.value)}
-          placeholder="Search Daak by subject..."
+          placeholder="Search Dak by subject..."
           className="mb-4"
         />
 
-        <input
-          type="text"
-          placeholder="Action"
-          value={action}
-          onChange={(e) => setAction(e.target.value)}
-          className="border p-1 mr-2"
-        />
-        <button
-          onClick={markAction}
-          className="px-3 py-1 bg-green-600 text-white rounded"
-        >
-          Mark Action
-        </button>
-      </div>
+        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+          <input
+            type="text"
+            placeholder="Enter Action"
+            value={action}
+            onChange={(e) => setAction(e.target.value)}
+            className="border p-2 rounded flex-1"
+          />
+          <button
+            onClick={markAction}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+          >
+             Mark Action
+          </button>
+        </div>
 
-      <div className="mb-2">
-        <input
-          type="text"
-          placeholder="Advice Query"
-          value={advice}
-          onChange={(e) => setAdvice(e.target.value)}
-          className="border p-1 mr-2"
-        />
-        <button
-          onClick={requestAdvice}
-          className="px-3 py-1 bg-blue-600 text-white rounded"
-        >
-          Request Advice
-        </button>
-      </div>
+        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+          <input
+            type="text"
+            placeholder="Enter Advice Query"
+            value={advice}
+            onChange={(e) => setAdvice(e.target.value)}
+            className="border p-2 rounded flex-1"
+          />
+          <button
+            onClick={requestAdvice}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          >
+             Request Advice
+          </button>
+        </div>
 
-      <div className="mb-2">
-        <button
-          onClick={downloadDak}
-          className="px-3 py-1 bg-purple-600 text-white rounded mr-2"
-        >
-          Download Dak
-        </button>
-        <button
-          onClick={getReports}
-          className="px-3 py-1 bg-gray-800 text-white rounded"
-        >
-          Load My Reports
-        </button>
+        <div className="flex flex-wrap gap-4 mb-4">
+          <button
+            onClick={downloadDak}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded"
+          >
+            Download Dak
+          </button>
+          <button
+            onClick={getReports}
+            className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded"
+          >
+             Load My Reports
+          </button>
+          <button
+            onClick={exportPDF}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+          >
+             Export PDF
+          </button>
+        </div>
       </div>
 
       {reports.length > 0 && (
-        <table className="min-w-full text-left border mt-4">
-          <thead>
-            <tr>
-              <th className="border px-2 py-1">Daak ID</th>
-              <th className="border px-2 py-1">Daak Subject</th>
-              <th className="border px-2 py-1">Uploaded By</th>
-              <th className="border px-2 py-1">Status</th>
-              <th className="border px-2 py-1">Track</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.map((dak) => (
-              <tr key={dak._id}>
-                <td className="border px-2 py-1">{dak.mail_id}</td>
-                <td className="border px-2 py-1">{dak.subject}</td>
-                <td className="border px-2 py-1">{dak.uploadedBy?.name}</td>
-                <td className="border px-2 py-1">{dak.status}</td>
-                <td className="border px-2 py-1"><DakTracking dakId={dak.s_id} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <DataTable
+          columns={columns}
+          data={reports}
+          pagination
+          highlightOnHover
+          striped
+          dense
+          persistTableHead
+          responsive
+        />
+      )}
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded shadow-lg w-full max-w-xl p-6 relative">
+            <h3 className="text-xl font-semibold mb-4">📍 Dak Tracking Logs</h3>
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-2 right-2 text-gray-700 hover:text-red-600"
+            >
+             Close
+            </button>
+            <div className="max-h-96 overflow-y-auto">
+              {trackingLogs.length > 0 ? trackingLogs.map(log => (
+                <div key={log._id} className="mb-4 border-b pb-2">
+                  <p><strong>{log.action}</strong> by {log.actor?.name}</p>
+                  <p className="text-sm">{log.details}</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(log.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              )) : <p>No logs found.</p>}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

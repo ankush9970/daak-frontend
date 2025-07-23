@@ -20,10 +20,9 @@ export default function UploadDak() {
     const fetchHeads = async () => {
       try {
         const res = await api.get('/users/heads');
-
         const options = res.data.map((head) => ({
           value: head._id,
-          label: head.name + ' ' + head.email,
+          label: `${head.name} (${head.email})`,
         }));
         setHeads(options);
       } catch (err) {
@@ -41,51 +40,15 @@ export default function UploadDak() {
     e.preventDefault();
     setMsg('');
 
-    if (!receivedBy) {
-      setMsg('Please select a Head user.');
-      return;
-    }
-
-    if (!id) {
-      setMsg('Please enter a Id.');
-      return;
-    }
-
-    if (!subject) {
-      setMsg('Please enter Subject.');
-      return;
-    }
-
-
-    if (!letter) {
-      setMsg('Please enter Letter Number.');
-      return;
-    }
-
-    if (!letterDate) {
-      setMsg('Please enter letter Date.');
-      return;
-    }
-
-    if (!lab) {
-      setMsg('Please enter Lab.');
-      return;
-    }
-
-    if (!lang) {
-      setMsg('Please choose language.');
-      return;
-    }
-
-    if (!region) {
-      setMsg('Please choose region.');
-      return;
-    }
-
-    if (files.length === 0) {
-      setMsg('Please select at least one PDF.');
-      return;
-    }
+    if (!receivedBy) return setMsg('Please select a Head user.');
+    if (!id) return setMsg('Please enter an ID.');
+    if (!subject) return setMsg('Please enter Subject.');
+    if (!letter) return setMsg('Please enter Letter Number.');
+    if (!letterDate) return setMsg('Please enter Letter Date.');
+    if (!lab) return setMsg('Please enter Lab.');
+    if (!lang) return setMsg('Please select Language.');
+    if (!region) return setMsg('Please select Region.');
+    if (files.length === 0) return setMsg('Please select at least one PDF.');
 
     const formData = new FormData();
     formData.append('receivedBy', receivedBy);
@@ -97,19 +60,15 @@ export default function UploadDak() {
     formData.append('lab', lab);
     formData.append('lang', lang);
     formData.append('region', region);
-
-    files.forEach((file) => {
-      formData.append('files', file);
-    });
+    files.forEach((file) => formData.append('files', file));
 
     try {
       const res = await api.post('/dak/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       setMsg(res.data.message);
       setId(Date.now());
+      setFiles([]);
     } catch (err) {
       console.error(err);
       setMsg(err.response?.data?.message || 'Upload failed');
@@ -117,112 +76,135 @@ export default function UploadDak() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border rounded">
-      <div className='mb-2'>
-        <input
-          type="text"
-          id='id'
-          className="border p-1 mr-2 bg-gray-200"
-          value={id}
-          placeholder='ID'
-          required
-          readOnly
-        />
+    <div className="w-full max-w-3xl bg-white rounded shadow p-6">
+      <h2 className="text-2xl font-bold mb-4">Upload Dak</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block mb-1 text-sm font-medium">ID</label>
+            <input
+              type="text"
+              value={id}
+              readOnly
+              className="w-full border px-3 py-2 rounded bg-gray-100 cursor-not-allowed"
+            />
+          </div>
 
-        <input
-          type="text"
-          id='subject'
-          className="border p-1 mr-2"
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          placeholder='Subject'
-        />
+          <div>
+            <label className="block mb-1 text-sm font-medium">Subject</label>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Enter Subject"
+              className="w-full border px-3 py-2 rounded"
+            />
+          </div>
 
-        <input
-          type="text"
-          className="border p-1 mr-2"
-          value={letter}
-          onChange={(e) => setLetter(e.target.value)}
-          placeholder='Letter Number'
-        />
+          <div>
+            <label className="block mb-1 text-sm font-medium">Letter Number</label>
+            <input
+              type="text"
+              value={letter}
+              onChange={(e) => setLetter(e.target.value)}
+              placeholder="Enter Letter Number"
+              className="w-full border px-3 py-2 rounded"
+            />
+          </div>
 
-        <input
-          type="date"
-          className="border p-1 mr-2"
-          value={letterDate}
-          onChange={(e) => setLetterDate(e.target.value)}
-          placeholder='Letter Date'
-        />
+          <div>
+            <label className="block mb-1 text-sm font-medium">Letter Date</label>
+            <input
+              type="date"
+              value={letterDate}
+              onChange={(e) => setLetterDate(e.target.value)}
+              className="w-full border px-3 py-2 rounded"
+            />
+          </div>
 
-        <input
-          type="text"
-          className="border p-1 mt-2 mb-2 mr-2"
-          value={lab}
-          onChange={(e) => setLab(e.target.value)}
-          placeholder='Lab'
-        />
+          <div>
+            <label className="block mb-1 text-sm font-medium">Lab</label>
+            <input
+              type="text"
+              value={lab}
+              onChange={(e) => setLab(e.target.value)}
+              placeholder="Enter Lab"
+              className="w-full border px-3 py-2 rounded"
+            />
+          </div>
 
-        <select
-          value={lang}
-          onChange={(e) => setLang(e.target.value)}
-          className="border p-2 mr-2"
+          <div>
+            <label className="block mb-1 text-sm font-medium">Letter Language</label>
+            <select
+              value={lang}
+              onChange={(e) => setLang(e.target.value)}
+              className="w-full border px-3 py-2 rounded"
+            >
+              <option value="">-- Select --</option>
+              <option value="English">English</option>
+              <option value="Hindi">Hindi</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block mb-1 text-sm font-medium">Region</label>
+            <select
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+              className="w-full border px-3 py-2 rounded"
+            >
+              <option value="">-- Select --</option>
+              <option value="A">(क)</option>
+              <option value="B">(ख)</option>
+              <option value="C">(ग)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className="block mb-1 text-sm font-medium">Select Head User</label>
+          <Select
+            options={heads}
+            onChange={(selected) => setReceivedBy(selected?.value)}
+            placeholder="Search Head by Name or Email..."
+            className="text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="block mb-1 text-sm font-medium">Source</label>
+          <select
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+          >
+            <option value="mail">Mail</option>
+            <option value="scanned_pdf">Scanned PDF</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block mb-1 text-sm font-medium">Upload PDF(s)</label>
+          <input
+            type="file"
+            multiple
+            accept="application/pdf"
+            onChange={handleFiles}
+            className="w-full border px-3 py-2 rounded"
+          />
+        </div>
+
+        {msg && (
+          <p className="text-sm mt-2 text-red-600 font-semibold">{msg}</p>
+        )}
+
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow"
         >
-          <option value="">-- Select Letter Language --</option>
-          <option value="English">English</option>
-          <option value="Hindi">Hindi</option>
-        </select>
-
-
-        <select
-          value={region}
-          onChange={(e) => setRegion(e.target.value)}
-          className="border p-2 mr-2"
-        >
-          <option value="">-- Select Region --</option>
-          <option value="A">(क)</option>
-          <option value="B">(ख)</option>
-          <option value="C">(ग)</option>
-        </select>
-
-
-        <h2 className="text-xl mb-2">Upload PDFs</h2>
-        <input
-          type="file"
-          multiple
-          accept="application/pdf"
-          onChange={handleFiles}
-          className="border p-2 mb-2 block"
-        />
-      </div>
-
-
-
-      <label className="block mb-1 font-semibold">Select Head User:</label>
-      <Select
-        options={heads}
-        onChange={(selected) => setReceivedBy(selected?.value)}
-        placeholder="Search Head by Name or Mail..."
-        className="mb-4"
-      />
-
-      <label className="block mb-1 font-semibold">Source:</label>
-      <select
-        value={source}
-        onChange={(e) => setSource(e.target.value)}
-        className="border p-2 mb-2 block w-full"
-      >
-        <option value="mail">Mail</option>
-        <option value="scanned_pdf">Scanned PDF</option>
-      </select>
-
-      <button
-        type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Upload PDFs
-      </button>
-
-      {msg && <p className="mt-2">{msg}</p>}
-    </form>
+          Upload Dak
+        </button>
+      </form>
+    </div>
   );
 }

@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import api from './api';
 import Select from 'react-select';
+import { toast } from 'react-hot-toast';
 
 export default function ForwardDak() {
   const [dakId, setDakId] = useState('');
   const [userId, setUserId] = useState('');
   const [advice, setAdvice] = useState('');
-  const [msg, setMsg] = useState('');
   const [daks, setDaks] = useState([]);
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    // Load available Daks for Head
     const fetchDaks = async () => {
       try {
         const res = await api.get('/dak/list');
@@ -20,28 +19,25 @@ export default function ForwardDak() {
           label: dak.subject,
           date: dak.createdAt,
         }));
-        
-        await opt.sort((a,b) => {
-          return new Date(b.date)-new Date(a.date);
-        })
-        
+        opt.sort((a, b) => new Date(b.date) - new Date(a.date));
         setDaks(opt);
       } catch (err) {
         console.error(err);
+        toast.error('Failed to load Daks.');
       }
     };
 
-    // Load Users to forward to
     const fetchUsers = async () => {
       try {
         const res = await api.get('/users/users');
         const opt = res.data.map((user) => ({
           value: user._id,
-          label: user.name+' '+user.email
+          label: `${user.name} ${user.email}`,
         }));
         setUsers(opt);
       } catch (err) {
         console.error(err);
+        toast.error('Failed to load Users.');
       }
     };
 
@@ -51,10 +47,9 @@ export default function ForwardDak() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMsg('');
 
     if (!dakId || !userId) {
-      setMsg('Please select a Dak and User.');
+      toast.error('Please select both Dak and User.');
       return;
     }
 
@@ -64,52 +59,62 @@ export default function ForwardDak() {
         userId,
         advice,
       });
-      setMsg(res.data.message);
+      toast.success(res.data.message || 'Dak forwarded successfully!');
+      // Reset form
+      setDakId('');
+      setUserId('');
+      setAdvice('');
     } catch (err) {
       console.error(err);
-      setMsg(err.response?.data?.message || 'Error forwarding Dak.');
+      toast.error(err.response?.data?.message || 'Error forwarding Dak.');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border rounded">
-      <h2 className="text-xl mb-4">Forward Dak to User</h2>
+    <div className="max-w-xl mx-auto bg-white p-6 rounded shadow">
+      <h2 className="text-2xl font-bold mb-6">Forward Dak to User</h2>
 
-      <label className="block mb-1 font-semibold">Select Dak:</label>
-      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block mb-1 font-medium">Select Dak:</label>
+          <Select
+            options={daks}
+            onChange={(selected) => setDakId(selected?.value)}
+            placeholder="Search Dak by Subject..."
+            value={daks.find(d => d.value === dakId) || null}
+            className="react-select-container"
+          />
+        </div>
 
-      <Select
-        options={daks}
-        onChange={(selected) => setDakId(selected?.value)}
-        placeholder="Search Daak by subject..."
-        className="mb-4"
-      />
+        <div>
+          <label className="block mb-1 font-medium">Select User:</label>
+          <Select
+            options={users}
+            onChange={(selected) => setUserId(selected?.value)}
+            placeholder="Search User by Name/Email..."
+            value={users.find(u => u.value === userId) || null}
+            className="react-select-container"
+          />
+        </div>
 
-      <label className="block mb-1 font-semibold">Select User:</label>
-      
-      <Select
-        options={users}
-        onChange={(selected) => setUserId(selected?.value)}
-        placeholder="Search User by Name and Email Address..."
-        className="mb-4"
-      />
+        <div>
+          <label className="block mb-1 font-medium">Advice (optional):</label>
+          <textarea
+            value={advice}
+            onChange={(e) => setAdvice(e.target.value)}
+            className="w-full border rounded p-2 focus:outline-none focus:ring focus:border-blue-300"
+            placeholder="Enter advice for the user..."
+            rows={4}
+          ></textarea>
+        </div>
 
-      <label className="block mb-1 font-semibold">Advice (optional):</label>
-      <textarea
-        value={advice}
-        onChange={(e) => setAdvice(e.target.value)}
-        className="border p-2 mb-4 w-full"
-        placeholder="Enter advice for user"
-      ></textarea>
-
-      <button
-        type="submit"
-        className="bg-green-600 text-white px-4 py-2 rounded"
-      >
-        Forward Dak
-      </button>
-
-      {msg && <p className="mt-2">{msg}</p>}
-    </form>
+        <button
+          type="submit"
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow transition"
+        >
+          Forward Dak
+        </button>
+      </form>
+    </div>
   );
 }

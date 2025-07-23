@@ -1,37 +1,75 @@
-
 import React, { useState } from 'react';
 import api from './api';
 import DakTracking from './DakTracking';
+import DataTable from 'react-data-table-component';
+import toast from 'react-hot-toast';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import {autoTable} from 'jspdf-autotable';
 
 export default function DakReports() {
   const [type, setType] = useState('sent');
   const [reports, setReports] = useState([]);
-  const [msg, setMsg] = useState('');
+  const [trackingDakId, setTrackingDakId] = useState(null);
 
   const fetchReports = async () => {
-    setMsg('');
     try {
       const res = await api.get(`/dak/report?type=${type}`);
-      const opt = res.data;
-      await opt.sort((a,b,) => {
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      });
-      setReports(opt);
-
+      const sorted = res.data.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setReports(sorted);
+      toast.success('Reports loaded!');
     } catch (err) {
-      setMsg(err.response?.data?.message || 'Failed to load reports');
+      toast.error(err.response?.data?.message || 'Failed to load reports');
     }
   };
 
-  return (
-    <div className="mb-4 p-4 border rounded bg-gray-50">
-      <h2 className="text-xl font-semibold mb-2">Dak Reports</h2>
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    doc.text('Dak Reports', 14, 20);
+    const rows = reports.map(dak => [
+      dak.mail_id,
+      dak.subject,
+      dak.uploadedBy?.name || '',
+      dak.forwardedTo?.name || '',
+      dak.status,
+    ]);
+    autoTable(doc, {
+      head: [['Mail ID', 'Subject', 'Uploaded By', 'Forwarded To', 'Status']],
+      body: rows,
+    });
+    doc.save('dak-reports.pdf');
+  };
 
-      <div className="flex items-center mb-4">
+  const columns = [
+    { name: 'Mail ID', selector: row => row.mail_id, sortable: true },
+    { name: 'Subject', selector: row => row.subject, sortable: true },
+    { name: 'Uploaded By', selector: row => row.uploadedBy?.name, sortable: true },
+    { name: 'Forwarded To', selector: row => row.forwardedTo?.name || 'Not Forwarded', sortable: true },
+    { name: 'Status', selector: row => row.status, sortable: true },
+    {
+      name: 'Track',
+      cell: row => (
+        <button
+          onClick={() => setTrackingDakId(row._id)}
+          className="px-2 py-1 bg-indigo-600 text-white rounded"
+        >
+          Track
+        </button>
+      ),
+    },
+  ];
+
+  return (
+    <div className="p-4 border rounded bg-gray-50">
+      <h2 className="text-xl font-semibold mb-4">Dak Reports</h2>
+
+      <div className="flex flex-wrap gap-2 mb-4">
         <select
-          className="border px-2 py-1 mr-2"
+          className="border px-2 py-1"
           value={type}
-          onChange={(e) => setType(e.target.value)}
+          onChange={e => setType(e.target.value)}
         >
           <option value="sent">Sent</option>
           <option value="received">Received</option>
@@ -43,35 +81,42 @@ export default function DakReports() {
         >
           Fetch Reports
         </button>
+
+        {reports.length > 0 && (
+          <button
+            className="px-4 py-1 bg-green-600 text-white rounded"
+            onClick={exportPDF}
+          >
+            Export PDF
+          </button>
+        )}
       </div>
 
-      {msg && <p className="text-red-600">{msg}</p>}
+      <DataTable
+        columns={columns}
+        data={reports}
+        pagination
+        highlightOnHover
+        dense
+        persistTableHead
+      />
 
-      {reports.length > 0 && (
-        <table className="min-w-full text-left border">
-          <thead>
-            <tr>
-              <th className="border px-2 py-1">Dak ID</th>
-              <th className="border px-2 py-1">Subject</th>
-              <th className="border px-2 py-1">Uploaded By</th>
-              <th className="border px-2 py-1">Forwarded To</th>
-              <th className="border px-2 py-1">Status</th>
-              <th className="border px-2 py-1">Track</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.map((dak) => (
-              <tr key={dak._id}>
-                <td className="border px-2 py-1">{dak.mail_id}</td>
-                <td className="border px-2 py-1">{dak.subject}</td>
-                <td className="border px-2 py-1">{dak.uploadedBy?.name}</td>
-                <td className={dak.forwardedTo?.name?"border px-2 py-1":"border px-2 py-1 text-red-700"}>{dak.forwardedTo?.name?dak.forwardedTo?.name:'Not Forwardeds to anyone'}</td>
-                <td className="border px-2 py-1">{dak.status}</td>
-                <td className="border px-2 py-1"><DakTracking dakId={dak._id} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Tracking Modal */}
+      {trackingDakId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">Dak Tracking</h3>
+              <button
+                onClick={() => setTrackingDakId(null)}
+                className="text-gray-500 hover:text-black"
+              >
+                ✕
+              </button>
+            </div>
+            <DakTracking dakId={trackingDakId} />
+          </div>
+        </div>
       )}
     </div>
   );
