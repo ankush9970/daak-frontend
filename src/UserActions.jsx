@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import DataTable from 'react-data-table-component';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import {autoTable} from 'jspdf-autotable';
 
 export default function UserActions() {
   const [dakId, setDakId] = useState('');
@@ -106,7 +107,7 @@ export default function UserActions() {
       tableRows.push(row);
     });
 
-    doc.autoTable(tableColumn, tableRows, { startY: 20 });
+    autoTable(doc,{ tableColumn, tableRows }, { startY: 20 });
     doc.save(`User_Dak_Reports_${new Date().getTime()}.pdf`);
   };
 
