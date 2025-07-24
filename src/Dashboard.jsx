@@ -111,7 +111,7 @@ export default function Dashboard() {
       {showEditProfile && (
         <ProfileEditModal
           user={user}
-          onClose={() => setShowEditProfile(false)}
+          onClose={() => setShowEditProfile(false)} onUpdated={() => {   }}
         />
       )}
       {showChangePass && (

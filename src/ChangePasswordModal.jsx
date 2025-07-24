@@ -1,6 +1,7 @@
 // ChangePasswordModal.jsx
 import React, { useState } from 'react';
 import api from './api';
+import toast from 'react-hot-toast';
 
 export default function ChangePasswordModal({ onClose }) {
   const [oldPass, setOldPass] = useState('');
@@ -12,12 +13,14 @@ export default function ChangePasswordModal({ onClose }) {
     setMsg('');
     try {
       await api.put('/users/change-password', { oldPassword: oldPass, newPassword: newPass });
-      setMsg('Password updated successfully!');
+      toast.success('Password updated successfully!');
       setOldPass('');
       setNewPass('');
+      onClose();
     } catch (err) {
       console.error(err);
-      setMsg('Failed to update password');
+      toast.error('Failed to update password');
+      onClose();
     }
   };
 

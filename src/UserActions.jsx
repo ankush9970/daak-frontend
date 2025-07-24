@@ -142,7 +142,7 @@ export default function UserActions() {
 
   return (
     <div className="p-6 bg-white rounded shadow w-full">
-      <h2 className="text-2xl font-semibold mb-4">👤 User Actions</h2>
+      <h2 className="text-2xl font-semibold mb-4">User Actions</h2>
 
       <div className="mb-4">
         <Select

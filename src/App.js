@@ -4,7 +4,7 @@ import Login from './Login';
 import Dashboard from './Dashboard';
 import { AuthProvider } from './AuthContext';
 import ProtectedRoute from './ProtectedRoute';
-import { Toaster } from 'react-hot-toast'; // ✅ Import Toaster
+import { Toaster } from 'react-hot-toast'; 
 
 function App() {
   return (

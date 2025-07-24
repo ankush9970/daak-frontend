@@ -12,10 +12,11 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
     const name = localStorage.getItem('name');
+    const email = localStorage.getItem('email');
     const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
 
     if (token && role && name) {
-      setUser({ token, role, name, permissions });
+      setUser({ token, role, name, email, permissions });
     } else {
       setUser(null); 
     }

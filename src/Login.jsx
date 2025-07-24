@@ -25,12 +25,14 @@ export default function Login() {
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('role', res.data.role);
       localStorage.setItem('name', res.data.name);
+      localStorage.setItem('email', res.data.email);
       localStorage.setItem('permissions', JSON.stringify(res.data.permissions));
 
       setUser({
         token: res.data.token,
         role: res.data.role,
         name: res.data.name,
+        email: res.data.email,
         permissions: res.data.permissions,
       });
 

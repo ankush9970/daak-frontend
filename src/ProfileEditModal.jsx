@@ -1,22 +1,24 @@
 // ProfileEditModal.jsx
 import React, { useState } from 'react';
 import api from './api';
+import toast from 'react-hot-toast';
 
 export default function ProfileEditModal({ user, onClose, onUpdated }) {
   const [name, setName] = useState(user.name);
-  const [email, setEmail] = useState(user.email);
   const [msg, setMsg] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMsg('');
     try {
-      await api.put('/users/me', { name, email });
-      onUpdated({ name, email });
+      const res = await api.put('/users/me', { name });
+      onUpdated({ name });
       onClose();
+      toast.success(res.data.message);
     } catch (err) {
       console.error(err);
-      setMsg('Failed to update profile');
+      toast.error("failed to update");
+
     }
   };
 
@@ -38,9 +40,9 @@ export default function ProfileEditModal({ user, onClose, onUpdated }) {
             <label className="block mb-1 text-sm font-medium">Email</label>
             <input
               type="email"
-              className="w-full border px-3 py-2 rounded"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              className="w-full border px-3 py-2 rounded bg-gray-200"
+              value={user.email}
+              readOnly
             />
           </div>
 
