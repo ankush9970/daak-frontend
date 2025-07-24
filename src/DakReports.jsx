@@ -4,58 +4,123 @@ import DakTracking from './DakTracking';
 import DataTable from 'react-data-table-component';
 import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
-import {autoTable} from 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
+import { FaSpinner } from 'react-icons/fa';
 
 export default function DakReports() {
-  const [type, setType] = useState('sent');
+  const [type, setType] = useState('received');
   const [reports, setReports] = useState([]);
   const [trackingDakId, setTrackingDakId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const fetchReports = async () => {
+  const fetchReports = async (reportType) => {
+    setLoading(true);
     try {
-      const res = await api.get(`/dak/report?type=${type}`);
+      const res = await api.get(`/dak/report?type=${reportType}`);
       const sorted = res.data.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
       setReports(sorted);
+      setType(reportType);
       toast.success('Reports loaded!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to load reports');
+    } finally {
+      setLoading(false);
     }
   };
 
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.text('Dak Reports', 14, 20);
-    const rows = reports.map(dak => [
+    const rows = reports.map((dak, index) => [
+      index + 1,
       dak.mail_id,
       dak.subject,
-      dak.uploadedBy?.name || '',
-      dak.forwardedTo?.name || '',
-      dak.status,
+      dak.letterNumber || '',
+      dak.lab || '',
+      dak.source || '',
+      new Date(dak.createdAt).toLocaleDateString(),
     ]);
     autoTable(doc, {
-      head: [['Mail ID', 'Subject', 'Uploaded By', 'Forwarded To', 'Status']],
+      head: [['Sno', 'Dak ID', 'Subject', 'Letter Number', 'Lab', 'Source', 'Date']],
       body: rows,
     });
     doc.save('dak-reports.pdf');
   };
 
+  const downloadAllPDFs = async (dakId) => {
+    try {
+      const res = await api.get(`/dak/download-all/${dakId}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `dak_${dakId}_all_pdfs.zip`);
+      document.body.appendChild(link);
+      link.click();
+      toast.success('Download started');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Download failed');
+    }
+  };
+
   const columns = [
-    { name: 'Mail ID', selector: row => row.mail_id, sortable: true },
-    { name: 'Subject', selector: row => row.subject, sortable: true },
-    { name: 'Uploaded By', selector: row => row.uploadedBy?.name, sortable: true },
-    { name: 'Forwarded To', selector: row => row.forwardedTo?.name || 'Not Forwarded', sortable: true },
-    { name: 'Status', selector: row => row.status, sortable: true },
+    {
+      name: 'Sno',
+      cell: (row, index) => index + 1,
+      width: '60px',
+    },
+    {
+      name: 'Dak ID',
+      selector: (row) => row.mail_id,
+      sortable: true,
+    },
+    {
+      name: 'Subject',
+      selector: (row) => row.subject,
+      sortable: true,
+    },
+    {
+      name: 'Letter Number',
+      selector: (row) => row.letterNumber || '',
+      sortable: true,
+    },
+    {
+      name: 'Lab',
+      selector: (row) => row.lab || '',
+      sortable: true,
+    },
+    {
+      name: 'Source',
+      selector: (row) => row.source || '',
+      sortable: true,
+    },
+    {
+      name: 'Date',
+      selector: (row) => new Date(row.createdAt).toLocaleDateString(),
+      sortable: true,
+    },
     {
       name: 'Track',
-      cell: row => (
+      cell: (row) => (
         <button
           onClick={() => setTrackingDakId(row._id)}
-          className="px-2 py-1 bg-indigo-600 text-white rounded"
+          className="px-2 py-1 bg-indigo-600 text-white rounded text-xs"
         >
           Track
+        </button>
+      ),
+    },
+    {
+      name: 'Download',
+      cell: (row) => (
+        <button
+          onClick={() => downloadAllPDFs(row._id)}
+          className="px-2 py-1 bg-purple-600 text-white rounded text-xs"
+        >
+          Download
         </button>
       ),
     },
@@ -66,26 +131,32 @@ export default function DakReports() {
       <h2 className="text-xl font-semibold mb-4">Dak Reports</h2>
 
       <div className="flex flex-wrap gap-2 mb-4">
-        <select
-          className="border px-2 py-1"
-          value={type}
-          onChange={e => setType(e.target.value)}
+        <button
+          onClick={() => fetchReports('received')}
+          disabled={loading}
+          className={`px-4 py-1 rounded ${type === 'received' ? 'bg-blue-700' : 'bg-blue-600'} text-white`}
         >
-          <option value="sent">Sent</option>
-          <option value="received">Received</option>
-        </select>
+          {loading && type === 'received' ? (
+            <FaSpinner className="animate-spin inline mr-2" />
+          ) : null}
+          Received
+        </button>
 
         <button
-          className="px-4 py-1 bg-blue-600 text-white rounded"
-          onClick={fetchReports}
+          onClick={() => fetchReports('sent')}
+          disabled={loading}
+          className={`px-4 py-1 rounded ${type === 'sent' ? 'bg-green-700' : 'bg-green-600'} text-white`}
         >
-          Fetch Reports
+          {loading && type === 'sent' ? (
+            <FaSpinner className="animate-spin inline mr-2" />
+          ) : null}
+          Sent
         </button>
 
         {reports.length > 0 && (
           <button
-            className="px-4 py-1 bg-green-600 text-white rounded"
             onClick={exportPDF}
+            className="px-4 py-1 bg-gray-800 text-white rounded"
           >
             Export PDF
           </button>

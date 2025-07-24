@@ -12,11 +12,10 @@ export default function ChangePasswordModal({ onClose }) {
     e.preventDefault();
     setMsg('');
     try {
-      await api.put('/users/change-password', { oldPassword: oldPass, newPassword: newPass });
-      toast.success('Password updated successfully!');
+      const res = await api.put('/users/change-password', { oldPassword: oldPass, newPassword: newPass });
+      res.data?.error?toast.error('Old Password does not matched'):toast.success(res.data.message);
       setOldPass('');
       setNewPass('');
-      onClose();
     } catch (err) {
       console.error(err);
       toast.error('Failed to update password');
