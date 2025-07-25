@@ -51,7 +51,7 @@ export default function DakReports() {
 
   const downloadAllPDFs = async (dakId) => {
     try {
-      const res = await api.get(`/dak/download-all/${dakId}`, {
+      const res = await api.get(`/dak/download/${dakId}`, {
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
@@ -96,6 +96,22 @@ export default function DakReports() {
       name: 'Source',
       selector: (row) => row.source || '',
       sortable: true,
+    },
+    {
+      name: 'Status',
+      selector: (row) => row.status || '',
+      sortable: true,
+      cell: (row) => (
+        <span class="bg-red-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">{row.status}</span>
+      )
+    },
+    {
+      name: 'Forwarded To',
+      // selector: (row) => (row.forwardedTo?.name || 'Not forwarded to anyone'),
+      sortable: true,
+      cell: (row) => (
+        <p className={row.forwardedTo?.name?"":"text-red-600"}>{row.forwardedTo?.name || 'Not forwarded to anyone'}</p>
+      )
     },
     {
       name: 'Date',

@@ -14,6 +14,7 @@ export default function ProfileEditModal({ user, onClose, onUpdated }) {
       const res = await api.put('/users/me', { name });
       onUpdated({ name });
       onClose();
+      localStorage.setItem('name',name);
       toast.success(res.data.message);
     } catch (err) {
       console.error(err);

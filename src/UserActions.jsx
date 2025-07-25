@@ -18,7 +18,7 @@ export default function UserActions() {
   const [modalDakId, setModalDakId] = useState('');
   const [loadingReports, setLoadingReports] = useState(false);
   const [loadingTracks, setLoadingTracks] = useState(false);
-  const [loadingDownload, setLoadingDownload] = useState(false);
+  const [loadingDownload, setLoadingDownload] = useState([]);
 
   useEffect(() => {
     const fetchDaks = async () => {
@@ -70,10 +70,10 @@ export default function UserActions() {
       toast.error('Select a Dak first.');
       return;
     }
-    const finalId = dakId||id;
+    const finalId = dakId || id;
     setLoadingDownload(true);
     try {
-      const res = await api.get(`/dak/download-all/${finalId}`, {
+      const res = await api.get(`/dak/download/${finalId}`, {
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
@@ -124,7 +124,7 @@ export default function UserActions() {
 
   const openTrackingModal = async (dakId) => {
     try {
-      
+
       setLoadingTracks(true);
       const res = await api.get(`/dak/${dakId}/tracking`);
       const logs = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -184,11 +184,12 @@ export default function UserActions() {
       cell: (row) => (
         <button
           onClick={() => openTrackingModal(row._id)}
+          key={row._id}
           disabled={loadingTracks}
           className="px-2 py-1 bg-indigo-600 text-white rounded text-xs"
         >
-            {loadingTracks && <FaSpinner className="inline animate-spin mr-2" />}
-           Track
+          {loadingTracks && <FaSpinner className="inline animate-spin mr-2" />}
+          Track
         </button>
       ),
     },
