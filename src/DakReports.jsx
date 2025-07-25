@@ -101,9 +101,9 @@ export default function DakReports() {
       name: 'Status',
       selector: (row) => row.status || '',
       sortable: true,
-      cell: (row) => (
-        <span class="bg-red-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">{row.status}</span>
-      )
+      // cell: (row) => (
+      //   <span class="bg-red-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">{row.status}</span>
+      // )
     },
     {
       name: 'Forwarded To',

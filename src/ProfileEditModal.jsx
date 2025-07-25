@@ -6,9 +6,12 @@ import toast from 'react-hot-toast';
 export default function ProfileEditModal({ user, onClose, onUpdated }) {
   const [name, setName] = useState(user.name);
   const [msg, setMsg] = useState('');
+  const [subBtn, setSubBtn] = useState(false);
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubBtn(true);
     setMsg('');
     try {
       const res = await api.put('/users/me', { name });
@@ -16,9 +19,11 @@ export default function ProfileEditModal({ user, onClose, onUpdated }) {
       onClose();
       localStorage.setItem('name',name);
       toast.success(res.data.message);
+      setSubBtn(false);
     } catch (err) {
       console.error(err);
       toast.error("failed to update");
+      setSubBtn(false);
 
     }
   };
@@ -59,6 +64,7 @@ export default function ProfileEditModal({ user, onClose, onUpdated }) {
             </button>
             <button
               type="submit"
+              disabled={subBtn}
               className="px-4 py-2 rounded bg-blue-600 text-white"
             >
               Save Changes

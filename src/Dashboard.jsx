@@ -8,9 +8,10 @@ import UserActions from './UserActions';
 import ProfileEditModal from './ProfileEditModal';
 import ChangePasswordModal from './ChangePasswordModal';
 import { Helmet } from 'react-helmet';
+import NotificationBell from './NotificationBell';
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const [active, setActive] = useState('');
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showChangePass, setShowChangePass] = useState(false);
@@ -18,6 +19,8 @@ export default function Dashboard() {
   if (!user) return null;
 
   const { name, role, permissions } = user;
+
+
 
   const hasPermission = (p) =>
     role.toLowerCase() === 'admin' || permissions.includes('ALL') || permissions.includes(p);
@@ -51,15 +54,24 @@ export default function Dashboard() {
       <aside className="fixed top-0 left-0 h-screen w-64 bg-white shadow-lg flex flex-col justify-between">
         <div className="flex flex-col h-full">
           {/* Profile */}
-          <div className="flex flex-col items-center p-6 border-b">
+          <div className="flex flex-col items-center p-6 border-b relative">
             <img
               className="w-20 h-20 rounded-full object-cover mb-2"
               src="https://avatar.iran.liara.run/public/boy?username=Ash"
               alt="Profile"
             />
-            <h2 className="text-lg font-semibold">{name}</h2>
+            <div className="flex items-center gap-2 relative">
+  <div className="flex items-center gap-3">
+  <h2 className="text-lg font-semibold">{name}</h2>
+  <NotificationBell />
+</div>
+</div>
+
             <p className="text-gray-500 text-sm capitalize">{role}</p>
           </div>
+          
+
+
 
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto">
@@ -67,9 +79,8 @@ export default function Dashboard() {
               <button
                 key={item.key}
                 onClick={() => setActive(item.key)}
-                className={`w-full text-left px-6 py-3 hover:bg-gray-200 ${
-                  active === item.key ? 'bg-gray-200 font-bold' : ''
-                }`}
+                className={`w-full text-left px-6 py-3 hover:bg-gray-200 ${active === item.key ? 'bg-gray-200 font-bold' : ''
+                  }`}
               >
                 {item.label}
               </button>
@@ -111,7 +122,7 @@ export default function Dashboard() {
       {showEditProfile && (
         <ProfileEditModal
           user={user}
-          onClose={() => setShowEditProfile(false)} onUpdated={() => {   }}
+          onClose={() => setShowEditProfile(false)} onUpdated={(update) => { setUser({ ...user, name: update.name }) }}
         />
       )}
       {showChangePass && (
