@@ -17,6 +17,7 @@ export default function UserActions() {
   const [showModal, setShowModal] = useState(false);
   const [modalDakId, setModalDakId] = useState('');
   const [loadingReports, setLoadingReports] = useState(false);
+  const [loadingTracks, setLoadingTracks] = useState(false);
   const [loadingDownload, setLoadingDownload] = useState(false);
 
   useEffect(() => {
@@ -104,7 +105,7 @@ export default function UserActions() {
 
   const exportPDF = () => {
     const doc = new jsPDF();
-    doc.text('User Dak Reports', 14, 16);
+    doc.text('User Dak Reports', 7, 8);
     const rows = reports.map((dak, index) => [
       index + 1,
       dak.mail_id,
@@ -112,7 +113,7 @@ export default function UserActions() {
       dak.letterNumber || '',
       dak.lab || '',
       dak.source || '',
-      new Date(dak.createdAt).toLocaleDateString(),
+      new Date(dak.createdAt).toLocaleDateString('en-gb'),
     ]);
     autoTable(doc, {
       head: [['Sno', 'Dak ID', 'Subject', 'Letter Number', 'Lab', 'Source', 'Date']],
@@ -123,12 +124,16 @@ export default function UserActions() {
 
   const openTrackingModal = async (dakId) => {
     try {
+      
+      setLoadingTracks(true);
       const res = await api.get(`/dak/${dakId}/tracking`);
       const logs = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setTrackingLogs(logs);
-      setModalDakId(dakId);
       setShowModal(true);
+      setLoadingTracks(false);
+      setModalDakId(dakId);
     } catch (err) {
+      setShowModal(false);
       toast.error('Failed to load tracking logs');
     }
   };
@@ -139,27 +144,60 @@ export default function UserActions() {
       cell: (row, index) => index + 1,
       width: '60px',
     },
-    { name: 'Daak ID', selector: row => row.mail_id, sortable: true },
-    { name: 'Subject', selector: row => row.subject, sortable: true },
-    { name: 'Uploaded By', selector: row => row.uploadedBy?.name || '', sortable: true },
-    { name: 'Status', selector: row => row.status, sortable: true },
+    {
+      name: 'Dak ID',
+      selector: (row) => row.mail_id,
+      sortable: true,
+    },
+    {
+      name: 'Subject',
+      selector: (row) => row.subject,
+      sortable: true,
+    },
+    {
+      name: 'Letter Number',
+      selector: (row) => row.letterNumber || '',
+      sortable: true,
+    },
+    {
+      name: 'Lab',
+      selector: (row) => row.lab || '',
+      sortable: true,
+    },
+    {
+      name: 'Source',
+      selector: (row) => row.source || '',
+      sortable: true,
+    },
+    {
+      name: 'Status',
+      selector: (row) => row.status || '',
+      sortable: true,
+    },
+    {
+      name: 'Date',
+      selector: (row) => new Date(row.createdAt).toLocaleDateString('en-gb'),
+      sortable: true,
+    },
     {
       name: 'Track',
-      cell: row => (
+      cell: (row) => (
         <button
           onClick={() => openTrackingModal(row._id)}
-          className="text-indigo-600 underline text-xs"
+          disabled={loadingTracks}
+          className="px-2 py-1 bg-indigo-600 text-white rounded text-xs"
         >
-          Track
+            {loadingTracks && <FaSpinner className="inline animate-spin mr-2" />}
+           Track
         </button>
       ),
     },
     {
       name: 'Download',
-      cell: row => (
+      cell: (row) => (
         <button
           onClick={() => downloadDak(row._id)}
-          className="text-purple-600 underline text-xs"
+          className="px-2 py-1 bg-purple-600 text-white rounded text-xs"
         >
           Download
         </button>
@@ -213,21 +251,21 @@ export default function UserActions() {
         </div>
 
         <div className="flex flex-wrap gap-4 mb-4">
-          <button
+          {/* <button
             onClick={downloadDak}
             disabled={loadingDownload}
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded"
           >
             {loadingDownload && <FaSpinner className="inline animate-spin mr-2" />}
             Download Dak
-          </button>
+          </button> */}
           <button
             onClick={getReports}
             disabled={loadingReports}
             className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded"
           >
             {loadingReports && <FaSpinner className="inline animate-spin mr-2" />}
-            Load My Reports
+            Load Reports
           </button>
           <button
             onClick={exportPDF}
