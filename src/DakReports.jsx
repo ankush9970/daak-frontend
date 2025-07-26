@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from './api';
 import DakTracking from './DakTracking';
 import DataTable from 'react-data-table-component';
@@ -12,16 +12,49 @@ export default function DakReports() {
   const [reports, setReports] = useState([]);
   const [trackingDakId, setTrackingDakId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState('');
+
+
+  useEffect(() => {
+    // if (localStorage.getItem("role") === "user" ) {
+      const userData = async () => {
+        setLoading(true);
+        try {
+          const res = await api.get(`/dak/report?type=received`);
+          const sorted = res.data.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          );
+          const finalData = sorted.map((val, ind) => ({
+            ...val, sno: ind + 1
+          }));
+          setReports(finalData);
+          // setType(reportType);
+          toast.success('Received Reports loaded!');
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Failed to load reports');
+        } finally {
+          setLoading(false);
+        }
+      // }
+    }
+      userData();
+    
+  }, []);
+
 
   const fetchReports = async (reportType) => {
     setLoading(true);
+      setType(reportType);
+
     try {
       const res = await api.get(`/dak/report?type=${reportType}`);
       const sorted = res.data.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
-      setReports(sorted);
-      setType(reportType);
+      const finalData = sorted.map((val, ind) => ({
+        ...val, sno: ind + 1
+      }));
+      setReports(finalData);
       toast.success('Reports loaded!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to load reports');
@@ -33,14 +66,14 @@ export default function DakReports() {
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.text('Dak Reports', 14, 20);
-    const rows = reports.map((dak, index) => [
+    const rows = filteredReports.map((dak, index) => [
       index + 1,
       dak.mail_id,
       dak.subject,
       dak.letterNumber || '',
       dak.lab || '',
       dak.source || '',
-      new Date(dak.createdAt).toLocaleDateString(),
+      new Date(dak.createdAt).toLocaleDateString('en-gb'),
     ]);
     autoTable(doc, {
       head: [['Sno', 'Dak ID', 'Subject', 'Letter Number', 'Lab', 'Source', 'Date']],
@@ -66,26 +99,36 @@ export default function DakReports() {
     }
   };
 
+  const filteredReports = reports.filter((r) =>
+    r.mail_id?.toLowerCase().includes(searchText.toLowerCase()) ||
+    r.subject?.toLowerCase().includes(searchText.toLowerCase()) ||
+    r.source?.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   const columns = [
     {
       name: 'Sno',
-      cell: (row, index) => index + 1,
-      width: '60px',
+      selector: (row) => row.sno,
+      sortable: true,
+      wrap: true
     },
     {
       name: 'Dak ID',
       selector: (row) => row.mail_id,
       sortable: true,
+      wrap: true
     },
     {
       name: 'Subject',
       selector: (row) => row.subject,
       sortable: true,
+      wrap: true
     },
     {
       name: 'Letter Number',
       selector: (row) => row.letterNumber || '',
       sortable: true,
+      wrap: true
     },
     {
       name: 'Lab',
@@ -101,46 +144,60 @@ export default function DakReports() {
       name: 'Status',
       selector: (row) => row.status || '',
       sortable: true,
-      // cell: (row) => (
-      //   <span class="bg-red-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">{row.status}</span>
-      // )
+      wrap: true
     },
     {
       name: 'Forwarded To',
-      // selector: (row) => (row.forwardedTo?.name || 'Not forwarded to anyone'),
       sortable: true,
       cell: (row) => (
-        <p className={row.forwardedTo?.name?"":"text-red-600"}>{row.forwardedTo?.name || 'Not forwarded to anyone'}</p>
+        <p className={row.forwardedTo?.name ? '' : 'text-red-600'}>
+          {row.forwardedTo?.name || 'Not forwarded to anyone'}
+        </p>
       )
     },
     {
       name: 'Date',
-      selector: (row) => new Date(row.createdAt).toLocaleDateString(),
+      selector: (row) => new Date(row.createdAt).toLocaleDateString('en-gb'),
       sortable: true,
     },
     {
-      name: 'Track',
+      name: 'Actions',
       cell: (row) => (
-        <button
-          onClick={() => setTrackingDakId(row._id)}
-          className="px-2 py-1 bg-indigo-600 text-white rounded text-xs"
-        >
-          Track
-        </button>
+        <div className="">
+          <button
+            onClick={() => setTrackingDakId(row._id)}
+            className="mb-1 px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700"
+          >
+            Track
+          </button>
+          <button
+            onClick={() => downloadAllPDFs(row._id)}
+            className="mb-1 px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
+          >
+            Download
+          </button>
+        </div>
       ),
-    },
-    {
-      name: 'Download',
-      cell: (row) => (
-        <button
-          onClick={() => downloadAllPDFs(row._id)}
-          className="px-2 py-1 bg-purple-600 text-white rounded text-xs"
-        >
-          Download
-        </button>
-      ),
+      ignoreRowClick: true,
+      allowOverflow: true,
+      button: true,
     },
   ];
+
+  const customStyles = {
+    cells: {
+      style: {
+        paddingLeft: '6px',
+        paddingRight: '6px',
+      },
+    },
+    headCells: {
+      style: {
+        paddingLeft: '6px',
+        paddingRight: '6px',
+      },
+    },
+  };
 
   return (
     <div className="p-4 border rounded bg-gray-50">
@@ -150,6 +207,7 @@ export default function DakReports() {
         <button
           onClick={() => fetchReports('received')}
           disabled={loading}
+          hidden={localStorage.getItem("role") === "distributor" ? true : false}
           className={`px-4 py-1 rounded ${type === 'received' ? 'bg-blue-700' : 'bg-blue-600'} text-white`}
         >
           {loading && type === 'received' ? (
@@ -161,6 +219,7 @@ export default function DakReports() {
         <button
           onClick={() => fetchReports('sent')}
           disabled={loading}
+          hidden={localStorage.getItem("role") === "user" ? true : false}
           className={`px-4 py-1 rounded ${type === 'sent' ? 'bg-green-700' : 'bg-green-600'} text-white`}
         >
           {loading && type === 'sent' ? (
@@ -177,16 +236,31 @@ export default function DakReports() {
             Export PDF
           </button>
         )}
+
+        <input
+          type="text"
+          placeholder="Search Dak ID / Subject / Source"
+          className="flex-1 px-3 py-1 border rounded-md"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
       </div>
 
-      <DataTable
-        columns={columns}
-        data={reports}
-        pagination
-        highlightOnHover
-        dense
-        persistTableHead
-      />
+      {/* Table Container */}
+      <div className="overflow-x-auto border rounded">
+        <div className="min-w-[1000px] max-h-[500px] overflow-y-auto">
+          <DataTable
+            columns={columns}
+            data={filteredReports}
+            pagination
+            highlightOnHover
+            dense
+            persistTableHead
+            responsive={false}
+            customStyles={customStyles}
+          />
+        </div>
+      </div>
 
       {/* Tracking Modal */}
       {trackingDakId && (

@@ -58,11 +58,11 @@ export default function NotificationBell() {
               {notifications.map((n) => (
                 <li
                   key={n._id}
-                  className="border-b px-4 py-2 text-sm hover:bg-gray-100"
+                  className={n.seen?"border-b px-4 py-2 text-sm hover:bg-gray-100":"border-b px-4 py-2 text-sm text-blue-600 hover:bg-gray-100"}
                 >
                   {n.message}
                   <div className="text-xs text-gray-400">
-                    {new Date(n.createdAt).toLocaleString()}
+                    {new Date(n.createdAt).toLocaleString('en-gb')}
                   </div>
                 </li>
               ))}

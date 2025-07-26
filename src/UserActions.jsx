@@ -24,7 +24,10 @@ export default function UserActions() {
     const fetchDaks = async () => {
       try {
         const res = await api.get('/dak/user-reports');
-        const options = res.data.map((dak) => ({
+        // const sorted = ;
+        const options = res.data.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          ).filter((d) => d.status !== 'completed').map((dak) => ({
           value: dak._id,
           label: `${dak.subject} (${dak.mail_id})`,
         }));
@@ -215,7 +218,7 @@ export default function UserActions() {
           options={daks}
           value={daks.find(opt => opt.value === dakId) || null}
           onChange={(selected) => setDakId(selected?.value)}
-          placeholder="Search Dak by subject..."
+          placeholder="Search Pending Dak by subject..."
           className="mb-4"
         />
 
@@ -260,7 +263,7 @@ export default function UserActions() {
             {loadingDownload && <FaSpinner className="inline animate-spin mr-2" />}
             Download Dak
           </button> */}
-          <button
+          {/* <button
             onClick={getReports}
             disabled={loadingReports}
             className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded"
@@ -273,7 +276,7 @@ export default function UserActions() {
             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
           >
             Export PDF
-          </button>
+          </button> */}
         </div>
       </div>
 
