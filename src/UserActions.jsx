@@ -13,6 +13,7 @@ export default function UserActions() {
   const [advice, setAdvice] = useState('');
   const [reports, setReports] = useState([]);
   const [daks, setDaks] = useState([]);
+  const [advicelist, setAdvicelist] = useState([]);
   const [trackingLogs, setTrackingLogs] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [modalDakId, setModalDakId] = useState('');
@@ -37,7 +38,43 @@ export default function UserActions() {
         toast.error('Failed to load Daks');
       }
     };
+
+    const fetchAdvice = async () => {
+      try {
+        const res = await api.get('/dak/user-reports');
+        // const sorted = ;
+        // const options = res.data.sort(
+        //     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        //   ).filter((d) => d.status !== 'completed').map((dak) => ({
+        //   value: dak._id,
+        //   label: `${dak.subject} (${dak.mail_id})`,
+        // }));
+        const opt = res.data.filter(d => d.userAdviceRequest.some(val => val.status !== 'NA'))
+  .map((val, ind) => {
+    return val.userAdviceRequest.map((req, i) => ({
+      _id: val._id,
+      subject: val.subject,
+      letterNumber: val.letterNumber,
+      message: req.message,
+      status: req.status,
+      createdAt: req.createdAt,
+      headResponse: req.headResponse,  // Default to null if headResponse is undefined
+      updatedAt: req.updatedAt,
+    }));
+  }).flat(); 
+
+console.log(opt);
+
+        setAdvicelist(opt);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to load Daks');
+      }
+    };
+
+    
     fetchDaks();
+    fetchAdvice();
   }, []);
 
   const markAction = async () => {
@@ -140,74 +177,89 @@ export default function UserActions() {
       toast.error('Failed to load tracking logs');
     }
   };
+const ExpandedComponent = ({ data }) => <pre>{JSON.stringify(data, null, 2)}</pre>;
+  const [viewModal, setViewModal] = useState({ open: false, title: '', content: '' });
 
-  const columns = [
-    {
-      name: 'Sno',
-      cell: (row, index) => index + 1,
-      width: '60px',
-    },
-    {
-      name: 'Dak ID',
-      selector: (row) => row.mail_id,
-      sortable: true,
-    },
-    {
-      name: 'Subject',
-      selector: (row) => row.subject,
-      sortable: true,
-    },
-    {
-      name: 'Letter Number',
-      selector: (row) => row.letterNumber || '',
-      sortable: true,
-    },
-    {
-      name: 'Lab',
-      selector: (row) => row.lab || '',
-      sortable: true,
-    },
-    {
-      name: 'Source',
-      selector: (row) => row.source || '',
-      sortable: true,
-    },
-    {
-      name: 'Status',
-      selector: (row) => row.status || '',
-      sortable: true,
-    },
-    {
-      name: 'Date',
-      selector: (row) => new Date(row.createdAt).toLocaleDateString('en-gb'),
-      sortable: true,
-    },
-    {
-      name: 'Track',
-      cell: (row) => (
-        <button
-          onClick={() => openTrackingModal(row._id)}
-          key={row._id}
-          disabled={loadingTracks}
-          className="px-2 py-1 bg-indigo-600 text-white rounded text-xs"
-        >
-          {loadingTracks && <FaSpinner className="inline animate-spin mr-2" />}
-          Track
-        </button>
-      ),
-    },
-    {
-      name: 'Download',
-      cell: (row) => (
-        <button
-          onClick={() => downloadDak(row._id)}
-          className="px-2 py-1 bg-purple-600 text-white rounded text-xs"
-        >
-          Download
-        </button>
-      ),
-    },
-  ];
+const openViewModal = (title, content) => {
+  setViewModal({ open: true, title, content });
+};
+
+const closeViewModal = () => {
+  setViewModal({ open: false, title: '', content: '' });
+};
+
+const columns = [
+  {
+    name: 'Query',
+    selector: (row) => row.message,
+    sortable: true,
+    cell: (row) => (
+      <div className="max-w-[180px] truncate" title={row.message}>
+        {row.message}
+        {row.message && row.message.length > 20 && (
+          <button
+            onClick={() => openViewModal("Full Query", row.message)}
+            className="text-blue-600 ml-2 underline text-xs"
+          >
+            View Full
+          </button>
+        )}
+      </div>
+    ),
+  },
+  {
+    name: 'Status',
+    selector: (row) => row.status,
+    sortable: true
+  },
+  {
+    name: 'Subject',
+    selector: (row) => row.subject,
+    sortable: true,
+    cell: (row) => (
+      <div className="max-w-[180px] truncate" title={row.subject}>
+        {row.subject}
+      </div>
+    ),
+  },
+  {
+    name: 'Response',
+    cell: (row) => (
+      <div className="max-w-[180px] truncate" title={row.headResponse}>
+        <p className={row.headResponse ? '' : 'text-red-600'}>
+          {row.headResponse || 'Waiting'}
+        </p>
+        {row.headResponse && row.headResponse.length > 50 && (
+          <button
+            onClick={() => openViewModal("Full Response", row.headResponse)}
+            className="text-blue-600 ml-2 underline text-xs"
+          >
+            View Full
+          </button>
+        )}
+      </div>
+    ),
+    sortable: true,
+  },
+  {
+    name: 'Date',
+    selector: (row) => new Date(row.createdAt).toLocaleDateString('en-gb'),
+    sortable: true,
+  },
+  {
+    name: 'Action',
+    cell: (row) => (
+      <button
+        onClick={() => downloadDak(row._id)}
+        disabled={row.status === 'completed'}
+        className="px-3 py-1 bg-purple-600 text-white rounded text-sm"
+      >
+        {row.status !== 'completed' ? 'Cancel' : 'Solved'}
+      </button>
+    ),
+  },
+];
+
 
   return (
     <div className="p-6 bg-white rounded shadow w-full">
@@ -280,12 +332,17 @@ export default function UserActions() {
         </div>
       </div>
 
-      {reports.length > 0 && (
+      {advicelist.length > 0 && (
         <DataTable
           columns={columns}
-          data={reports}
+          data={advicelist}
           pagination
           highlightOnHover
+          expandableRows= {false}
+          		expandableRowsComponent={ExpandedComponent}
+	expandOnRowClicked= {false}
+	expandOnRowDoubleClicked= {false}
+	expandableRowsHideExpander= {false}
           striped
           dense
           persistTableHead
@@ -317,6 +374,24 @@ export default function UserActions() {
           </div>
         </div>
       )}
+    {viewModal.open && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+    <div className="bg-white p-6 rounded shadow max-w-xl w-full relative">
+      <h3 className="text-lg font-bold mb-2">{viewModal.title}</h3>
+      <button
+        onClick={closeViewModal}
+        className="absolute top-2 right-2 text-gray-700 hover:text-red-600"
+      >
+        ✕
+      </button>
+      <div className="max-h-[300px] overflow-auto whitespace-pre-wrap text-sm text-gray-800">
+        {viewModal.content}
+      </div>
     </div>
+  </div>
+)}
+
+    </div>
+    
   );
 }
