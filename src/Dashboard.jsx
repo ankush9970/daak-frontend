@@ -9,6 +9,7 @@ import ProfileEditModal from './ProfileEditModal';
 import ChangePasswordModal from './ChangePasswordModal';
 import { Helmet } from 'react-helmet';
 import NotificationBell from './NotificationBell';
+import ManageUsers from './ManageUsers';
 
 export default function Dashboard() {
   const { user, logout, setUser } = useAuth();
@@ -31,6 +32,7 @@ export default function Dashboard() {
     { key: 'REPORT', label: 'Dak Reports', component: <DakReports /> },
     { key: 'REMINDER', label: 'Send Reminder', component: <SendReminder /> },
     { key: 'USER_ACTIONS', label: 'User Actions', component: <UserActions /> },
+      { key: 'MANAGE_USERS', label: 'Manage Users', component: <ManageUsers /> },
   ];
 
   const allowedItems = menuItems.filter((item) => {
