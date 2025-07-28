@@ -41,7 +41,7 @@ export default function UserActions() {
 
     const fetchAdvice = async () => {
       try {
-        const res = await api.get('/dak/user-reports');
+        const res = await api.get('/dak/list-advice');
         // const sorted = ;
         // const options = res.data.sort(
         //     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -58,7 +58,7 @@ export default function UserActions() {
       message: req.message,
       status: req.status,
       createdAt: req.createdAt,
-      headResponse: req.headResponse,  // Default to null if headResponse is undefined
+      headResponse: req.headResponse, 
       updatedAt: req.updatedAt,
     }));
   }).flat(); 
