@@ -4,7 +4,7 @@ import { useAuth } from './AuthContext';
 import AddUserModal from './AddUserModal';
 import toast from 'react-hot-toast';
 
-const ManageUsers = () => {
+const AdviceReport = () => {
     const { user } = useAuth();
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
@@ -15,7 +15,7 @@ const ManageUsers = () => {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/users');
+            const res = await api.get('/dak/user-reports');
             setUsers(res.data);
         } catch (err) {
             console.error('Failed to fetch users:', err);
@@ -60,14 +60,12 @@ const ManageUsers = () => {
         fetchRoles();
     }, []);
 
-    if (user?.role?.toLowerCase() !== 'admin') {
-        return <p className="text-red-600 font-semibold">Access Denied</p>;
-    }
+
 
     return (
         <div className="p-4">
             <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">Manage Users</h1>
+                <h1 className="text-2xl font-bold">Manage Advice</h1>
                 <button
                     onClick={() => setShowModal(true)}
                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -134,4 +132,4 @@ const ManageUsers = () => {
     );
 };
 
-export default ManageUsers;
+export default AdviceReport;

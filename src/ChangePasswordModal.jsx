@@ -14,6 +14,7 @@ export default function ChangePasswordModal({ onClose }) {
     try {
       const res = await api.put('/users/change-password', { oldPassword: oldPass, newPassword: newPass });
       res.data?.error?toast.error('Old Password does not matched'):toast.success(res.data.message);
+      res.data?.error?toast.error('Old Password does not matched'):onClose();
       setOldPass('');
       setNewPass('');
     } catch (err) {

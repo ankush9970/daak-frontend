@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from './api';
 
-export default function AddUserModal({ onClose, onUserAdded }) {
+export default function AddUserModal({ onClose, onUserAdded, loadedRoles }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,8 +13,8 @@ export default function AddUserModal({ onClose, onUserAdded }) {
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const res = await api.get('/role');
-        setRoles(res.data); // Assuming API returns array of roles
+        // const res = await api.get('/users/role');
+        setRoles(loadedRoles); // Assuming API returns array of roles
       } catch (err) {
         console.error('Error fetching roles:', err);
       }
@@ -27,7 +27,7 @@ export default function AddUserModal({ onClose, onUserAdded }) {
     setLoading(true);
     setError('');
     try {
-      const res = await api.post('/user', { name, email, password, role });
+      const res = await api.post('/users/create', { name, email, password, role });
       onUserAdded(res.data); // Callback to parent
       onClose(); // Close modal
     } catch (err) {
@@ -78,7 +78,7 @@ export default function AddUserModal({ onClose, onUserAdded }) {
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none"
+              className="w-full px-3 py-2 border rounded focus:outline-none capitalize"
               required
             >
               <option value="">Select Role</option>
