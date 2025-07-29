@@ -16,19 +16,56 @@ export default function UserActions() {
   const [advicelist, setAdvicelist] = useState([]);
   const [trackingLogs, setTrackingLogs] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingAdvice, setLoadingAdvice] = useState(false);
   const [modalDakId, setModalDakId] = useState('');
   const [loadingReports, setLoadingReports] = useState(false);
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [loadingDownload, setLoadingDownload] = useState([]);
 
+
+  const fetchAdvice = async () => {
+    try {
+      const res = await api.get('/dak/user-reports');
+      // const sorted = ;
+      // const options = res.data.sort(
+      //     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      //   ).filter((d) => d.status !== 'completed').map((dak) => ({
+      //   value: dak._id,
+      //   label: `${dak.subject} (${dak.mail_id})`,
+      // }));
+      const opt = res.data.filter(d => d.userAdviceRequest.some(val => val.status !== 'NA'))
+        .map((val, ind) => {
+          return val.userAdviceRequest.map((req, i) => ({
+            _id: val._id,
+            subject: val.subject,
+            letterNumber: val.letterNumber,
+            message: req.message,
+            status: req.status,
+            createdAt: req.createdAt,
+            headResponse: req.headResponse,
+            updatedAt: req.updatedAt,
+          }));
+        }).flat();
+opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      // console.log(opt);
+
+      setAdvicelist(opt);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load Daks');
+    }
+  };
+
   useEffect(() => {
     const fetchDaks = async () => {
+      setLoading(true);
       try {
         const res = await api.get('/dak/user-reports');
         // const sorted = ;
         const options = res.data.sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-          ).filter((d) => d.status !== 'completed').map((dak) => ({
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        ).filter((d) => d.status !== 'completed').map((dak) => ({
           value: dak._id,
           label: `${dak.subject} (${dak.mail_id})`,
         }));
@@ -36,43 +73,11 @@ export default function UserActions() {
       } catch (err) {
         console.error(err);
         toast.error('Failed to load Daks');
+      } finally {
+        setLoading(false);
       }
     };
 
-    const fetchAdvice = async () => {
-      try {
-        const res = await api.get('/dak/list-advice');
-        // const sorted = ;
-        // const options = res.data.sort(
-        //     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        //   ).filter((d) => d.status !== 'completed').map((dak) => ({
-        //   value: dak._id,
-        //   label: `${dak.subject} (${dak.mail_id})`,
-        // }));
-        const opt = res.data.filter(d => d.userAdviceRequest.some(val => val.status !== 'NA'))
-  .map((val, ind) => {
-    return val.userAdviceRequest.map((req, i) => ({
-      _id: val._id,
-      subject: val.subject,
-      letterNumber: val.letterNumber,
-      message: req.message,
-      status: req.status,
-      createdAt: req.createdAt,
-      headResponse: req.headResponse, 
-      updatedAt: req.updatedAt,
-    }));
-  }).flat(); 
-
-console.log(opt);
-
-        setAdvicelist(opt);
-      } catch (err) {
-        console.error(err);
-        toast.error('Failed to load Daks');
-      }
-    };
-
-    
     fetchDaks();
     fetchAdvice();
   }, []);
@@ -96,12 +101,17 @@ console.log(opt);
       toast.error('Dak and Advice Query are required.');
       return;
     }
+    setLoadingAdvice(true);
     try {
-      await api.post('/dak/request-advice', { dakId, query: advice });
-      toast.success('Advice request sent!');
+      const res = await api.post('/dak/request-advice', { dakId, query: advice });
+      res.data.message ? toast.success(res.data.message) : toast.error(res.data.error);
       setAdvice('');
+      setDakId('');
+      fetchAdvice();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Advice request failed');
+    } finally {
+      setLoadingAdvice(false);
     }
   };
 
@@ -177,88 +187,88 @@ console.log(opt);
       toast.error('Failed to load tracking logs');
     }
   };
-const ExpandedComponent = ({ data }) => <pre>{JSON.stringify(data, null, 2)}</pre>;
+  const ExpandedComponent = ({ data }) => <pre>{JSON.stringify(data, null, 2)}</pre>;
   const [viewModal, setViewModal] = useState({ open: false, title: '', content: '' });
 
-const openViewModal = (title, content) => {
-  setViewModal({ open: true, title, content });
-};
+  const openViewModal = (title, content) => {
+    setViewModal({ open: true, title, content });
+  };
 
-const closeViewModal = () => {
-  setViewModal({ open: false, title: '', content: '' });
-};
+  const closeViewModal = () => {
+    setViewModal({ open: false, title: '', content: '' });
+  };
 
-const columns = [
-  {
-    name: 'Query',
-    selector: (row) => row.message,
-    sortable: true,
-    cell: (row) => (
-      <div className="max-w-[180px] truncate" title={row.message}>
-        {row.message}
-        {row.message && row.message.length > 20 && (
-          <button
-            onClick={() => openViewModal("Full Query", row.message)}
-            className="text-blue-600 ml-2 underline text-xs"
-          >
-            View Full
-          </button>
-        )}
-      </div>
-    ),
-  },
-  {
-    name: 'Status',
-    selector: (row) => row.status,
-    sortable: true
-  },
-  {
-    name: 'Subject',
-    selector: (row) => row.subject,
-    sortable: true,
-    cell: (row) => (
-      <div className="max-w-[180px] truncate" title={row.subject}>
-        {row.subject}
-      </div>
-    ),
-  },
-  {
-    name: 'Response',
-    cell: (row) => (
-      <div className="max-w-[180px] truncate" title={row.headResponse}>
-        <p className={row.headResponse ? '' : 'text-red-600'}>
-          {row.headResponse || 'Waiting'}
-        </p>
-        {row.headResponse && row.headResponse.length > 50 && (
-          <button
-            onClick={() => openViewModal("Full Response", row.headResponse)}
-            className="text-blue-600 ml-2 underline text-xs"
-          >
-            View Full
-          </button>
-        )}
-      </div>
-    ),
-    sortable: true,
-  },
-  {
-    name: 'Date',
-    selector: (row) => new Date(row.createdAt).toLocaleDateString('en-gb'),
-    sortable: true,
-  },
-  {
-    name: 'Action',
-    cell: (row) => (
-      <button
-        onClick={() => downloadDak(row._id)}
-        disabled={row.status === 'completed'}
-        className="px-3 py-1 bg-purple-600 text-white rounded text-sm"
-      >
-        {row.status !== 'completed' ? 'Cancel' : 'Solved'}
-      </button>
-    ),
-  },
-];
+  const columns = [
+    {
+      name: 'Query',
+      selector: (row) => row.message,
+      sortable: true,
+      cell: (row) => (
+        <div className="max-w-[180px] truncate" title={row.message}>
+          {row.message}
+          {row.message && row.message.length > 20 && (
+            <button
+              onClick={() => openViewModal("Full Query", row.message)}
+              className="text-blue-600 ml-2 underline text-xs"
+            >
+              View Full
+            </button>
+          )}
+        </div>
+      ),
+    },
+    {
+      name: 'Status',
+      selector: (row) => row.status,
+      sortable: true
+    },
+    {
+      name: 'Subject',
+      selector: (row) => row.subject,
+      sortable: true,
+      cell: (row) => (
+        <div className="max-w-[180px] truncate" title={row.subject}>
+          {row.subject}
+        </div>
+      ),
+    },
+    {
+      name: 'Response',
+      cell: (row) => (
+        <div className="max-w-[180px] truncate" title={row.headResponse}>
+          <p className={row.headResponse ? '' : 'text-red-600'}>
+            {row.headResponse || 'Waiting'}
+          </p>
+          {row.headResponse && row.headResponse.length > 50 && (
+            <button
+              onClick={() => openViewModal("Full Response", row.headResponse)}
+              className="text-blue-600 ml-2 underline text-xs"
+            >
+              View Full
+            </button>
+          )}
+        </div>
+      ),
+      sortable: true,
+    },
+    {
+      name: 'Date',
+      selector: (row) => new Date(row.createdAt).toLocaleDateString('en-gb'),
+      sortable: true,
+    },
+    {
+      name: 'Action',
+      cell: (row) => (
+        <button
+          onClick={() => downloadDak(row._id)}
+          disabled={row.status === 'completed'}
+          className="px-3 py-1 bg-purple-600 text-white rounded text-sm"
+        >
+          {row.status !== 'completed' ? 'Cancel' : 'Solved'}
+        </button>
+      ),
+    },
+  ];
 
 
   return (
@@ -300,9 +310,9 @@ const columns = [
           />
           <button
             onClick={requestAdvice}
+            disabled={loadingAdvice}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            Request Advice
+          >{loadingAdvice?<FaSpinner className="inline animate-spin mr-2" />:'Request Advice'}
           </button>
         </div>
 
@@ -332,17 +342,21 @@ const columns = [
         </div>
       </div>
 
-      {advicelist.length > 0 && (
+      {loading ? <tr>
+        <td colSpan="5" className="text-center py-4">
+          <FaSpinner className="animate-spin inline mr-2" />
+          Loading...</td>
+      </tr> : (
         <DataTable
           columns={columns}
           data={advicelist}
           pagination
           highlightOnHover
-          expandableRows= {false}
-          		expandableRowsComponent={ExpandedComponent}
-	expandOnRowClicked= {false}
-	expandOnRowDoubleClicked= {false}
-	expandableRowsHideExpander= {false}
+          expandableRows={false}
+          expandableRowsComponent={ExpandedComponent}
+          expandOnRowClicked={false}
+          expandOnRowDoubleClicked={false}
+          expandableRowsHideExpander={false}
           striped
           dense
           persistTableHead
@@ -366,7 +380,7 @@ const columns = [
                   <p><strong>{log.action}</strong> by {log.actor?.name}</p>
                   <p className="text-sm">{log.details}</p>
                   <p className="text-xs text-gray-500">
-                    {new Date(log.createdAt).toLocaleString()}
+                    {new Date(log.createdAt).toLocaleString('en-gb')}
                   </p>
                 </div>
               )) : <p>No logs found.</p>}
@@ -374,24 +388,24 @@ const columns = [
           </div>
         </div>
       )}
-    {viewModal.open && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-    <div className="bg-white p-6 rounded shadow max-w-xl w-full relative">
-      <h3 className="text-lg font-bold mb-2">{viewModal.title}</h3>
-      <button
-        onClick={closeViewModal}
-        className="absolute top-2 right-2 text-gray-700 hover:text-red-600"
-      >
-        ✕
-      </button>
-      <div className="max-h-[300px] overflow-auto whitespace-pre-wrap text-sm text-gray-800">
-        {viewModal.content}
-      </div>
-    </div>
-  </div>
-)}
+      {viewModal.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded shadow max-w-xl w-full relative">
+            <h3 className="text-lg font-bold mb-2">{viewModal.title}</h3>
+            <button
+              onClick={closeViewModal}
+              className="absolute top-2 right-2 text-gray-700 hover:text-red-600"
+            >
+              ✕
+            </button>
+            <div className="max-h-[300px] overflow-auto whitespace-pre-wrap text-sm text-gray-800">
+              {viewModal.content}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
-    
+
   );
 }

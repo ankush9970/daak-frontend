@@ -27,6 +27,7 @@ export default function NotificationBell() {
   const unseen = notifications.some((n) => !n.seen);
 
   const toggleNotifications = async () => {
+    setTimeout(async() => {
     if (!showNotifications && unseen) {
       try {
         await api.put('/dak/mark-seen');
@@ -36,7 +37,9 @@ export default function NotificationBell() {
       } catch (err) {
         console.error(err);
       }
-    }
+    }  
+    }, 5000);
+    
     setShowNotifications(!showNotifications);
   };
 

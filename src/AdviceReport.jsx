@@ -8,14 +8,14 @@ const AdviceReport = () => {
     const [loading, setLoading] = useState(false);
     const [headResponse, setHeadResponse] = useState('');
     const [error, setError] = useState('');
-    const [showModal, setShowModal] = useState(false);
+    const [dakId, setDakId] = useState('');
 
 
     const fetchAdvice = async () => {
         setLoading(true);
         try {
             const res = await api.get('/dak/list-advice');
-
+res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             const opt = res.data.filter(d => d.userAdviceRequest.some(val => val.status !== 'NA'))
                 .map((val, ind) => {
                     return val.userAdviceRequest.map((req, i) => ({
@@ -29,7 +29,8 @@ const AdviceReport = () => {
                         updatedAt: req.updatedAt,
                     }));
                 }).flat();
-            console.log(opt);
+                opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            // console.log(opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
 
 
             setAdvicelist(opt);
@@ -40,10 +41,6 @@ const AdviceReport = () => {
             setLoading(false);
         }
     };
-
-
-
-
 
     useEffect(() => {
         fetchAdvice();
@@ -56,8 +53,9 @@ const AdviceReport = () => {
         setViewModal({ open: true, title, content });
     };
 
-    const openReplyModal = (message, id) => {
-        setReplyModal({ open: true, message, id });
+    const openReplyModal = (message, _id) => {
+        setReplyModal({ open: true, message, _id });
+        setDakId(_id)
     };
 
     const closeViewModal = () => {
@@ -65,7 +63,7 @@ const AdviceReport = () => {
     };
 
     const closeReplyModal = () => {
-        setReplyModal({ open: false, title: '', content: '' });
+        setReplyModal({ open: false, message: '', _id: '' });
     };
 
     const columns = [
@@ -140,16 +138,19 @@ const AdviceReport = () => {
         },
     ];
 
-    const handleSubmit = async (e, dakId) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
         try {
             const res = await api.post(`/dak/response-advice`, { dakId, headResponse });
             res.data.message ? toast.success(res.data.message) : toast.error(res.data.error);
+            closeReplyModal();
+            fetchAdvice();
         } catch (error) {
             console.log(error);
             toast.error('Failed to sent');
+            closeReplyModal();
         }
         finally {
             setLoading(false);
