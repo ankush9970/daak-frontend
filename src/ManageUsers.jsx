@@ -60,7 +60,7 @@ const ManageUsers = () => {
         fetchRoles();
     }, []);
 
-    if (user?.role?.toLowerCase() !== 'admin') {
+    if (user?.role?.toLowerCase() !== 'admin' || user?.permissions?.toLowerCase() !== 'manage_users' ) {
         return <p className="text-red-600 font-semibold">Access Denied</p>;
     }
 

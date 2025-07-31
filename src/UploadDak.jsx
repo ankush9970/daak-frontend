@@ -20,11 +20,22 @@ export default function UploadDak() {
     const fetchHeads = async () => {
       try {
         const res = await api.get('/users/heads');
-        const options = res.data.map((head) => ({
-          value: head._id,
-          label: `${head.name} (${head.email})`,
-        }));
-        setHeads(options);
+        if (localStorage.getItem("role") === 'head') {
+          const options = res.data.filter((d) => localStorage.getItem("email") !== d.email ? d.email:'').map((head) => ({
+            value: head._id,
+            label: `${head.name} (${head.email})`,
+          }));
+          setHeads(options);
+
+        } else {
+          const options = res.data.map((head) => ({
+            value: head._id,
+            label: `${head.name} (${head.email})`,
+          }));
+          setHeads(options);
+
+        }
+
       } catch (err) {
         console.error(err);
       }
