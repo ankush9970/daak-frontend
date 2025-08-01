@@ -8,6 +8,8 @@ const ManageUsers = () => {
     const { user } = useAuth();
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
+    const [groups, setGroups] = useState([]);
+
     const [loading, setLoading] = useState(false);
     const [updatingUserId, setUpdatingUserId] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -30,6 +32,15 @@ const ManageUsers = () => {
             setRoles(res.data);
         } catch (err) {
             console.error('Failed to fetch roles:', err);
+        }
+    };
+
+    const fetchGroups = async () => {
+        try {
+            const res = await api.get('/users/group');
+            setGroups(res.data);
+        } catch (err) {
+            console.error('Failed to fetch groups:', err);
         }
     };
 
@@ -58,6 +69,7 @@ const ManageUsers = () => {
     useEffect(() => {
         fetchUsers();
         fetchRoles();
+        fetchGroups();
     }, []);
 
     if (user?.role?.toLowerCase() !== 'admin' && user?.role?.toLowerCase() !== 'director') {
@@ -128,6 +140,7 @@ const ManageUsers = () => {
                     onClose={() => setShowModal(false)}
                     onUserAdded={fetchUsers}
                     loadedRoles={roles}
+                    loadedGroups={groups}
                 />
             )}
         </div>
