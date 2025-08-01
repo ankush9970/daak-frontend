@@ -11,6 +11,7 @@ import { Helmet } from 'react-helmet';
 import NotificationBell from './NotificationBell';
 import ManageUsers from './ManageUsers';
 import AdviceReport from './AdviceReport';
+import ManageHead from './ManageHead';
 
 export default function Dashboard() {
   const { user, logout, setUser } = useAuth();
@@ -28,12 +29,13 @@ export default function Dashboard() {
     role.toLowerCase() === 'admin' || permissions.includes('ALL') || permissions.includes(p);
 
   const menuItems = [
-    { key: 'UPLOAD', label: 'Upload Dak', component: <UploadDak /> },
+    { key: 'UPLOAD', label: 'Upload & Forward Dak', component: <UploadDak /> },
     { key: 'FORWARD', label: 'Forward Dak', component: <ForwardDak /> },
     { key: 'REPORT', label: 'Dak Reports', component: <DakReports /> },
     { key: 'REMINDER', label: 'Send Reminder', component: <SendReminder /> },
     { key: 'USER_ACTIONS', label: 'User Actions', component: <UserActions /> },
       { key: 'MANAGE_USERS', label: 'Manage Users', component: <ManageUsers /> },
+      { key: 'MANAGE_HEAD', label: 'Manage Group Head', component: <ManageHead /> },
       { key: 'MANAGE_ADVICE', label: 'Manage Advice', component: <AdviceReport /> },
   ];
 

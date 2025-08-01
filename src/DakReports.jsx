@@ -228,6 +228,18 @@ export default function DakReports() {
           Sent
         </button>
 
+        <button
+          onClick={() => fetchReports('upload')}
+          disabled={loading}
+          hidden={localStorage.getItem("role") === "user" ? true : false}
+          className={`px-4 py-1 rounded ${type === 'upload' ? 'bg-purple-700' : -600'} text-white`}
+        >
+          {loading && type === 'upload' ? (
+            <FaSpinner className="animate-spin inline mr-2" />
+          ) : null}
+          Uploaded
+        </button>
+
         {reports.length > 0 && (
           <button
             onClick={exportPDF}

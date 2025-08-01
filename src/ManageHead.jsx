@@ -4,7 +4,7 @@ import { useAuth } from './AuthContext';
 import AddUserModal from './AddUserModal';
 import toast from 'react-hot-toast';
 
-const ManageUsers = () => {
+const ManageHead = () => {
     const { user } = useAuth();
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
@@ -15,10 +15,10 @@ const ManageUsers = () => {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/users');
+            const res = await api.get('/users/heads');
             setUsers(res.data);
         } catch (err) {
-            console.error('Failed to fetch users:', err);
+            console.error('Failed to fetch head:', err);
         } finally {
             setLoading(false);
         }
@@ -67,12 +67,12 @@ const ManageUsers = () => {
     return (
         <div className="p-4">
             <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">Manage Users</h1>
+                <h1 className="text-2xl font-bold">Manage Head</h1>
                 <button
                     onClick={() => setShowModal(true)}
                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                 >
-                    + Add User
+                    + Add Head
                 </button>
             </div>
             {/* <h2 className="text-2xl font-bold mb-4">Manage Users & Roles</h2> */}
@@ -134,4 +134,4 @@ const ManageUsers = () => {
     );
 };
 
-export default ManageUsers;
+export default ManageHead;
