@@ -3,12 +3,15 @@ import api from './api';
 import { useAuth } from './AuthContext';
 import AddUserModal from './AddUserModal';
 import toast from 'react-hot-toast';
+import PermissionDrawer from './PermissionDrawer';
 
 const ManageUsers = () => {
     const { user } = useAuth();
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
     const [groups, setGroups] = useState([]);
+    const [selectedUserId, setSelectedUserId] = useState(null);
+    const [drawerOpen, setDrawerOpen] = useState(false);
 
     const [loading, setLoading] = useState(false);
     const [updatingUserId, setUpdatingUserId] = useState(null);
@@ -96,6 +99,7 @@ const ManageUsers = () => {
                             <th className="px-4 py-2 border">Email</th>
                             <th className="px-4 py-2 border">Current Role</th>
                             <th className="px-4 py-2 border">Change Role</th>
+                            <th className="px-4 py-2 border">Permissions</th>
                             <th className="px-4 py-2 border">Reset Password</th>
                         </tr>
                     </thead>
@@ -127,6 +131,18 @@ const ManageUsers = () => {
                                                 ))}
                                             </select>
                                         </td>
+                                        <td className="px-4 py-2 border">
+                                            <button
+                                                className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
+                                                onClick={() => {
+                                                    setSelectedUserId(u._id);
+                                                    setDrawerOpen(true);
+                                                }}
+                                            >
+                                                Manage
+                                            </button>
+                                        </td>
+
                                         <td className="px-4 py-2 border capitalize"><button onClick={(e) => resetPassword(u._id)} className='bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded'>Reset Password</button></td>
                                     </tr>
                                 );
@@ -143,6 +159,12 @@ const ManageUsers = () => {
                     loadedGroups={groups}
                 />
             )}
+            <PermissionDrawer
+                userId={selectedUserId}
+                isOpen={drawerOpen}
+                onClose={() => setDrawerOpen(false)}
+            />
+
         </div>
     );
 };
