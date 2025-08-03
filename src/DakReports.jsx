@@ -17,34 +17,34 @@ export default function DakReports() {
 
   useEffect(() => {
     // if (localStorage.getItem("role") === "user" ) {
-      const userData = async () => {
-        setLoading(true);
-        try {
-          const res = await api.get(`/dak/report?type=received`);
-          const sorted = res.data.sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-          );
-          const finalData = sorted.map((val, ind) => ({
-            ...val, sno: ind + 1
-          }));
-          setReports(finalData);
-          // setType(reportType);
-          toast.success('Received Reports loaded!');
-        } catch (err) {
-          toast.error(err.response?.data?.message || 'Failed to load reports');
-        } finally {
-          setLoading(false);
-        }
+    const userData = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get(`/dak/report?type=received`);
+        const sorted = res.data.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        const finalData = sorted.map((val, ind) => ({
+          ...val, sno: ind + 1
+        }));
+        setReports(finalData);
+        // setType(reportType);
+        toast.success('Received Reports loaded!');
+      } catch (err) {
+        toast.error(err.response?.data?.message || 'Failed to load reports');
+      } finally {
+        setLoading(false);
+      }
       // }
     }
-      userData();
-    
+    userData();
+
   }, []);
 
 
   const fetchReports = async (reportType) => {
     setLoading(true);
-      setType(reportType);
+    setType(reportType);
 
     try {
       const res = await api.get(`/dak/report?type=${reportType}`);
@@ -98,6 +98,17 @@ export default function DakReports() {
       toast.error(err.response?.data?.message || 'Download failed');
     }
   };
+
+  const returnHead = async (dakId) => {
+    try {
+      const res = await api.get(`/dak/dak-return/${dakId}`);
+      res.data.message ? toast.success(res.data.message) : toast.error(res.data.error);
+      fetchReports('received');
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to return");
+    }
+  }
 
   const filteredReports = reports.filter((r) =>
     r.mail_id?.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -176,6 +187,15 @@ export default function DakReports() {
           >
             Download
           </button>
+          {localStorage.getItem('role') === 'user' ?
+            <button
+              onClick={() => returnHead(row._id)}
+              hidden={row.isReturned ? true : false}
+              className="mb-1 px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
+            >
+              Return
+            </button> : ''
+          }
         </div>
       ),
       ignoreRowClick: true,

@@ -49,8 +49,6 @@ export default function NotificationBell() {
         <FaBell className="w-5 h-5 text-gray-700" />
 
         {unseen && (
-          // <span className="">
-
           <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-semibold rounded-full px-1.5 py-0.5 shadow-md animate-bounce">
             {notifications.filter(d => d.seen === false).length}
           </span>
