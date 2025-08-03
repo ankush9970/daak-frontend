@@ -27,19 +27,19 @@ export default function NotificationBell() {
   const unseen = notifications.some((n) => !n.seen);
 
   const toggleNotifications = async () => {
-    setTimeout(async() => {
-    if (!showNotifications && unseen) {
-      try {
-        await api.put('/dak/mark-seen');
-        setNotifications((prev) =>
-          prev.map((n) => ({ ...n, seen: true }))
-        );
-      } catch (err) {
-        console.error(err);
+    setTimeout(async () => {
+      if (!showNotifications && unseen) {
+        try {
+          await api.put('/dak/mark-seen');
+          setNotifications((prev) =>
+            prev.map((n) => ({ ...n, seen: true }))
+          );
+        } catch (err) {
+          console.error(err);
+        }
       }
-    }  
     }, 5000);
-    
+
     setShowNotifications(!showNotifications);
   };
 
@@ -47,10 +47,16 @@ export default function NotificationBell() {
     <div className="relative">
       <button onClick={toggleNotifications} className="relative">
         <FaBell className="w-5 h-5 text-gray-700" />
+
         {unseen && (
-          <span className="absolute -top-1 -right-1 inline-block w-2 h-2 bg-red-600 rounded-full"></span>
+          // <span className="">
+
+          <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-semibold rounded-full px-1.5 py-0.5 shadow-md animate-bounce">
+            {notifications.filter(d => d.seen === false).length}
+          </span>
         )}
       </button>
+
 
       {showNotifications && (
         <div className="absolute top-8 left-1/2 -translate-x-1/2 w-64 bg-white border shadow-lg rounded z-50">
@@ -61,7 +67,7 @@ export default function NotificationBell() {
               {notifications.map((n) => (
                 <li
                   key={n._id}
-                  className={n.seen?"border-b px-4 py-2 text-sm hover:bg-gray-100":"border-b px-4 py-2 text-sm text-blue-600 hover:bg-gray-100"}
+                  className={n.seen ? "border-b px-4 py-2 text-sm hover:bg-gray-100" : "border-b px-4 py-2 text-sm text-blue-600 hover:bg-gray-100"}
                 >
                   {n.message}
                   <div className="text-xs text-gray-400">
