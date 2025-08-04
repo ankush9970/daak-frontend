@@ -158,6 +158,12 @@ export default function DakReports() {
       wrap: true
     },
     {
+      name: 'Sent To',
+      selector: (row) => row.receivedBy?.name ||  '',
+      sortable: true,
+      wrap: true
+    },
+    {
       name: 'Forwarded To',
       sortable: true,
       cell: (row) => (
