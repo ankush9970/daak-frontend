@@ -21,7 +21,10 @@ const ManageUsers = () => {
         setLoading(true);
         try {
             const res = await api.get('/users');
-            setUsers(res.data);
+            // console.log(res.data);
+            const filtered = res.data.filter(d => (d.role.name !== 'head' && d.role.name !== 'director' && d.role.name !== 'admin'));
+            console.log(filtered.sort((a,b) => a.group.name.localeCompare(b.group.name)));
+            setUsers(filtered);
         } catch (err) {
             console.error('Failed to fetch users:', err);
         } finally {
@@ -97,7 +100,7 @@ const ManageUsers = () => {
                         <tr>
                             <th className="px-4 py-2 border">Name</th>
                             <th className="px-4 py-2 border">Email</th>
-                            <th className="px-4 py-2 border">Current Role</th>
+                            <th className="px-4 py-2 border">Group</th>
                             <th className="px-4 py-2 border">Change Role</th>
                             <th className="px-4 py-2 border">Permissions</th>
                             <th className="px-4 py-2 border">Reset Password</th>
@@ -115,7 +118,7 @@ const ManageUsers = () => {
                                     <tr key={u._id} className="hover:bg-gray-50">
                                         <td className="px-4 py-2 border">{u.name}</td>
                                         <td className="px-4 py-2 border">{u.email}</td>
-                                        <td className="px-4 py-2 border capitalize">{currentRole?.name || 'N/A'}</td>
+                                        <td className="px-4 py-2 border">{u.group.name}</td>
                                         <td className="px-4 py-2 border">
                                             <select
                                                 className="border px-2 py-1 rounded capitalize"
