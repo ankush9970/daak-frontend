@@ -78,7 +78,7 @@ const ManageUsers = () => {
         fetchGroups();
     }, []);
 
-    if (user?.role?.toLowerCase() !== 'admin' && user?.role?.toLowerCase() !== 'director') {
+    if (user?.role?.toLowerCase() !== 'admin' && user?.role?.toLowerCase() !== 'director' && user?.role?.toLowerCase() !== 'head') {
         return <p className="text-red-600 font-semibold">Access Denied</p>;
     }
 

@@ -1,38 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import api from './api';
+import React, { useState, useEffect } from "react";
+import api from "./api";
 
-export default function AddUserModal({ onClose, onUserAdded, loadedRoles, loadedGroups }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('');
-  const [group, setGroup] = useState(''); 
-  const [roles, setRoles] = useState([]);
+export default function AddUserModal({
+  onClose,
+  onUserAdded,
+  loadedRoles,
+  loadedGroups,
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
+  const [group, setGroup] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        // const res = await api.get('/users/role');
-        setRoles(loadedRoles); // Assuming API returns array of roles
-      } catch (err) {
-        console.error('Error fetching roles:', err);
-      }
-    };
-    fetchRoles();
-  }, []);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
     try {
-      const res = await api.post('/users/create', { name, email, password, role, group });
+      const res = await api.post("/users/create", {
+        name,
+        email,
+        password,
+        role,
+        group,
+      });
       onUserAdded(res.data); // Callback to parent
       onClose(); // Close modal
     } catch (err) {
-      setError(err.response?.data?.message || 'Something went wrong');
+      setError(err.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -41,7 +39,7 @@ export default function AddUserModal({ onClose, onUserAdded, loadedRoles, loaded
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Add New User</h2>
+        <h2 className="text-xl font-bold mb-4">Add Details</h2>
         {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -91,7 +89,6 @@ export default function AddUserModal({ onClose, onUserAdded, loadedRoles, loaded
             </select>
           </div>
 
-
           <div>
             <label className="block text-sm font-medium">Groups</label>
             <select
@@ -122,7 +119,7 @@ export default function AddUserModal({ onClose, onUserAdded, loadedRoles, loaded
               disabled={loading}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              {loading ? 'Saving...' : 'Create User'}
+              {loading ? "Saving..." : "Create User"}
             </button>
           </div>
         </form>
