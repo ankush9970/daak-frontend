@@ -16,7 +16,11 @@ const ManageHead = () => {
         setLoading(true);
         try {
             const res = await api.get('/users/heads');
-            setUsers(res.data);
+            const filtered = res.data.filter(d => (d.role.name !== 'head' && d.role.name !== 'director' && d.role.name !== 'admin'));
+            console.log(filtered.sort((a,b) => a.group.name.localeCompare(b.group.name)));
+            // console.log(res.data);
+            
+            setUsers(filtered);
         } catch (err) {
             console.error('Failed to fetch head:', err);
         } finally {
@@ -82,8 +86,9 @@ const ManageHead = () => {
                         <tr>
                             <th className="px-4 py-2 border">Name</th>
                             <th className="px-4 py-2 border">Email</th>
-                            <th className="px-4 py-2 border">Current Role</th>
+                            <th className="px-4 py-2 border">Group</th>
                             <th className="px-4 py-2 border">Change Role</th>
+                            <th className="px-4 py-2 border">Permissions</th>
                             <th className="px-4 py-2 border">Reset Password</th>
                         </tr>
                     </thead>
@@ -99,7 +104,7 @@ const ManageHead = () => {
                                     <tr key={u._id} className="hover:bg-gray-50">
                                         <td className="px-4 py-2 border">{u.name}</td>
                                         <td className="px-4 py-2 border">{u.email}</td>
-                                        <td className="px-4 py-2 border capitalize">{currentRole?.name || 'N/A'}</td>
+                                        <td className="px-4 py-2 border capitalize">{u.group?.name || 'N/A'}</td>
                                         <td className="px-4 py-2 border">
                                             <select
                                                 className="border px-2 py-1 rounded capitalize"
