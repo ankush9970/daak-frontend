@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import api from './api';
-import Select from 'react-select';
-import { toast } from 'react-hot-toast';
+import React, { useState, useEffect } from "react";
+import api from "./api";
+import Select from "react-select";
+import { toast } from "react-hot-toast";
+import { FaSpinner } from "react-icons/fa";
 
 export default function ForwardDak() {
-  const [dakId, setDakId] = useState('');
-  const [userId, setUserId] = useState('');
-  const [advice, setAdvice] = useState('');
+  const [dakId, setDakId] = useState("");
+  const [userId, setUserId] = useState("");
+  const [advice, setAdvice] = useState("");
   const [daks, setDaks] = useState([]);
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchDaks = async () => {
       try {
-        const res = await api.get('/dak/list');
+        const res = await api.get("/dak/list");
         const opt = res.data.map((dak) => ({
           value: dak._id,
           label: dak.subject,
@@ -23,13 +25,13 @@ export default function ForwardDak() {
         setDaks(opt);
       } catch (err) {
         console.error(err);
-        toast.error('Failed to load Daks.');
+        toast.error("Failed to load Daks.");
       }
     };
 
     const fetchUsers = async () => {
       try {
-        const res = await api.get('/users/users');
+        const res = await api.get("/users/users");
         const opt = res.data.map((user) => ({
           value: user._id,
           label: `${user.name} ${user.email}`,
@@ -37,7 +39,7 @@ export default function ForwardDak() {
         setUsers(opt);
       } catch (err) {
         console.error(err);
-        toast.error('Failed to load Users.');
+        toast.error("Failed to load Users.");
       }
     };
 
@@ -49,24 +51,24 @@ export default function ForwardDak() {
     e.preventDefault();
 
     if (!dakId || !userId) {
-      toast.error('Please select both Dak and User.');
+      toast.error("Please select both Dak and User.");
       return;
     }
 
     try {
-      const res = await api.post('/dak/forward', {
+      const res = await api.post("/dak/forward", {
         dakId,
         userId,
         advice,
       });
-      toast.success(res.data.message || 'Dak forwarded successfully!');
+      toast.success(res.data.message || "Dak forwarded successfully!");
       // Reset form
-      setDakId('');
-      setUserId('');
-      setAdvice('');
+      setDakId("");
+      setUserId("");
+      setAdvice("");
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || 'Error forwarding Dak.');
+      toast.error(err.response?.data?.message || "Error forwarding Dak.");
     }
   };
 
@@ -81,7 +83,7 @@ export default function ForwardDak() {
             options={daks}
             onChange={(selected) => setDakId(selected?.value)}
             placeholder="Search Dak by Subject..."
-            value={daks.find(d => d.value === dakId) || null}
+            value={daks.find((d) => d.value === dakId) || null}
             className="react-select-container"
           />
         </div>
@@ -92,7 +94,7 @@ export default function ForwardDak() {
             options={users}
             onChange={(selected) => setUserId(selected?.value)}
             placeholder="Search User by Name/Email..."
-            value={users.find(u => u.value === userId) || null}
+            value={users.find((u) => u.value === userId) || null}
             className="react-select-container"
           />
         </div>
@@ -110,8 +112,10 @@ export default function ForwardDak() {
 
         <button
           type="submit"
+          disabled={loading}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow transition"
         >
+          {loading ? <FaSpinner className="animate-spin inline mr-2" /> : ""}
           Forward Dak
         </button>
       </form>
