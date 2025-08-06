@@ -54,6 +54,7 @@ export default function ForwardDak() {
       toast.error("Please select both Dak and User.");
       return;
     }
+    setLoading(true);
 
     try {
       const res = await api.post("/dak/forward", {
@@ -69,6 +70,8 @@ export default function ForwardDak() {
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Error forwarding Dak.");
+    } finally {
+      setLoading(false);
     }
   };
 
