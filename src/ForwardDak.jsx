@@ -12,37 +12,37 @@ export default function ForwardDak() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const fetchDaks = async () => {
+    try {
+      const res = await api.get("/dak/list");
+      const opt = res.data.map((dak) => ({
+        value: dak._id,
+        label: dak.subject,
+        date: dak.createdAt,
+      }));
+      opt.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setDaks(opt);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load Daks.");
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get("/users/users");
+      const opt = res.data.map((user) => ({
+        value: user._id,
+        label: `${user.name} ${user.email}`,
+      }));
+      setUsers(opt);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load Users.");
+    }
+  };
+
   useEffect(() => {
-    const fetchDaks = async () => {
-      try {
-        const res = await api.get("/dak/list");
-        const opt = res.data.map((dak) => ({
-          value: dak._id,
-          label: dak.subject,
-          date: dak.createdAt,
-        }));
-        opt.sort((a, b) => new Date(b.date) - new Date(a.date));
-        setDaks(opt);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to load Daks.");
-      }
-    };
-
-    const fetchUsers = async () => {
-      try {
-        const res = await api.get("/users/users");
-        const opt = res.data.map((user) => ({
-          value: user._id,
-          label: `${user.name} ${user.email}`,
-        }));
-        setUsers(opt);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to load Users.");
-      }
-    };
-
     fetchDaks();
     fetchUsers();
   }, []);
@@ -67,6 +67,7 @@ export default function ForwardDak() {
       setDakId("");
       setUserId("");
       setAdvice("");
+      fetchDaks();
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Error forwarding Dak.");
