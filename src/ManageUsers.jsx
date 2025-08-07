@@ -4,6 +4,7 @@ import { useAuth } from "./AuthContext";
 import AddUserModal from "./AddUserModal";
 import toast from "react-hot-toast";
 import PermissionDrawer from "./PermissionDrawer";
+import { hasPermission } from "./utils/Permission";
 
 const ManageUsers = () => {
   const { user } = useAuth();
@@ -125,7 +126,9 @@ const ManageUsers = () => {
               <th className="px-4 py-2 border">Group</th>
               <th className="px-4 py-2 border">Change Role</th>
               <th className="px-4 py-2 border">Permissions</th>
-              <th className="px-4 py-2 border">Reset Password</th>
+              {hasPermission("reset-password") && (
+                <th className="px-4 py-2 border">Reset Password</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -173,15 +176,16 @@ const ManageUsers = () => {
                         Manage
                       </button>
                     </td>
-
-                    <td className="px-4 py-2 border capitalize">
-                      <button
-                        onClick={(e) => resetPassword(u._id)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                      >
-                        Reset Password
-                      </button>
-                    </td>
+                    {hasPermission("reset-password") && (
+                      <td className="px-4 py-2 border capitalize">
+                        <button
+                          onClick={(e) => resetPassword(u._id)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                        >
+                          Reset Password
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 );
               })

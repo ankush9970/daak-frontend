@@ -53,10 +53,13 @@ export default function AddUserModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Email</label>
+            <label className="block text-sm font-medium">PIS/PIN</label>
             <input
-              type="email"
+              type="text"
               value={email}
+              pattern="\d{4}[A-Za-z]{2}\d{4}"
+              title="Format: 4 digits, 2 letters, 4 digits (e.g. 1234AB5678)"
+              maxLength={10}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border rounded focus:outline-none"
               required
@@ -83,7 +86,7 @@ export default function AddUserModal({
               <option value="">Select Role</option>
               {loadedRoles.map((r) => (
                 <option key={r._id} value={r._id}>
-                  {r.name}
+                  {r.name.charAt(0).toUpperCase() + r.name.slice(1)}
                 </option>
               ))}
             </select>
@@ -100,7 +103,7 @@ export default function AddUserModal({
               <option value="">Select Group</option>
               {loadedGroups.map((r) => (
                 <option key={r._id} value={r._id}>
-                  {r.name}
+                  {r.name.charAt(0).toUpperCase() + r.name.slice(1)}
                 </option>
               ))}
             </select>

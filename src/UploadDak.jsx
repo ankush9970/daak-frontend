@@ -104,7 +104,7 @@ export default function UploadDak() {
 
   return (
     <div className="p-4 border rounded bg-gray-50">
-      <h2 className="text-2xl font-bold mb-4">Upload Dak</h2>
+      <h2 className="text-2xl font-bold mb-4">Send Dak</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -207,36 +207,33 @@ export default function UploadDak() {
           </div>
 
           <div>
-          <label className="block mb-1 text-sm font-medium">Letter Source</label>
-          <select
-            value={source}
-            onChange={(e) => setSource(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-          >
-            <option value="mail">Mail</option>
-            <option value="scanned_pdf">Scanned PDF</option>
-          </select>
+            <label className="block mb-1 text-sm font-medium">
+              Letter Source
+            </label>
+            <select
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              className="w-full border px-3 py-2 rounded"
+            >
+              <option value="mail">Mail</option>
+              <option value="scanned_pdf">Scanned PDF</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block mb-1 text-sm font-medium">
+              Upload PDF(s)
+            </label>
+            <input
+              type="file"
+              multiple
+              accept="application/pdf"
+              ref={fileInput}
+              onChange={handleFiles}
+              className="w-full border px-3 py-2 rounded"
+            />
+          </div>
         </div>
-
-        <div>
-          <label className="block mb-1 text-sm font-medium">
-            Upload PDF(s)
-          </label>
-          <input
-            type="file"
-            multiple
-            accept="application/pdf"
-            ref={fileInput}
-            onChange={handleFiles}
-            className="w-full border px-3 py-2 rounded"
-          />
-        </div>
-
-        </div>
-
-        
-
-       
 
         {msg && (
           <p className="text-sm mt-2 text-red-600 font-semibold">{msg}</p>

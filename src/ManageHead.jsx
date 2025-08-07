@@ -4,6 +4,7 @@ import { useAuth } from "./AuthContext";
 import AddUserModal from "./AddUserModal";
 import toast from "react-hot-toast";
 import PermissionDrawer from "./PermissionDrawer";
+import { hasPermission } from "./utils/Permission";
 
 const ManageHead = () => {
   const { user } = useAuth();
@@ -44,7 +45,10 @@ const ManageHead = () => {
   const fetchGroups = async () => {
     try {
       const res = await api.get("/users/group");
-      setGroups(res.data);
+      localStorage.getItem("role") !== "admin"
+        ? setGroups(res.data.filter((d) => d.shortName !== "sa"))
+        : setGroups(res.data);
+      // setGroups(res.data);
     } catch (err) {
       console.error("Failed to fetch groups:", err);
     }
@@ -53,7 +57,14 @@ const ManageHead = () => {
   const fetchRoles = async () => {
     try {
       const res = await api.get("/users/role");
-      setRoles(res.data);
+
+      if (localStorage.getItem("role") === "admin") {
+        setRoles(res.data);
+      } else {
+        setRoles(
+          res.data.filter((d) => d.name !== "admin" && d.name !== "director")
+        );
+      }
     } catch (err) {
       console.error("Failed to fetch roles:", err);
     }
@@ -115,7 +126,9 @@ const ManageHead = () => {
               <th className="px-4 py-2 border">Group</th>
               <th className="px-4 py-2 border">Change Role</th>
               <th className="px-4 py-2 border">Permissions</th>
-              <th className="px-4 py-2 border">Reset Password</th>
+              {hasPermission("reset-password") && (
+                <th className="px-4 py-2 border">Reset Password</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -165,14 +178,16 @@ const ManageHead = () => {
                         Manage
                       </button>
                     </td>
-                    <td className="px-4 py-2 border capitalize">
-                      <button
-                        onClick={(e) => resetPassword(u._id)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                      >
-                        Reset Password
-                      </button>
-                    </td>
+                    {hasPermission("reset-password") && (
+                      <td className="px-4 py-2 border capitalize">
+                        <button
+                          onClick={(e) => resetPassword(u._id)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                        >
+                          Reset Password
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 );
               })
