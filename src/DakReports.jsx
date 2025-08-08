@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "./api";
 import DakTracking from "./DakTracking";
+import ForwardDak from "./ForwardDak";
 import DataTable from "react-data-table-component";
 import toast from "react-hot-toast";
 import { jsPDF } from "jspdf";
@@ -13,6 +14,8 @@ export default function DakReports() {
   const [trackingDakId, setTrackingDakId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [forwardDakId, setForwardDakId] = useState([]);
+  const [forwardId, setForwardId] = useState(null);
 
   useEffect(() => {
     // if (localStorage.getItem("role") === "user" ) {
@@ -166,9 +169,18 @@ export default function DakReports() {
       selector: (row) => row.status || "",
       sortable: true,
       wrap: true,
-      // cell: (row) => (
-        
-      // )
+      cell: (row) => (
+        <button
+          onClick={() => {
+            setForwardDakId(row);
+            setForwardId(row._id);
+          }}
+          className="mb-1 px-3 py-1 bg-green-700 text-white rounded text-sm hover:bg-green-800"
+          disabled={row.status === "uploaded" ? false : true}
+        >
+          {row.status === "uploaded" ? "Select" : "Forwarded"}
+        </button>
+      ),
     },
     {
       name: "Sent To",
@@ -340,6 +352,26 @@ export default function DakReports() {
               </button>
             </div>
             <DakTracking dakId={trackingDakId} />
+          </div>
+        </div>
+      )}
+      {/* Forward Dak Modal */}
+      {forwardId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">Forward Dak</h3>
+              <button
+                onClick={() => setForwardId(null)}
+                className="text-gray-500 hover:text-black"
+              >
+                ✕
+              </button>
+            </div>
+            <ForwardDak
+              onClose={() => setForwardId(null)}
+              preDak={forwardDakId}
+            />
           </div>
         </div>
       )}

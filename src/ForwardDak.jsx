@@ -4,7 +4,7 @@ import Select from "react-select";
 import { toast } from "react-hot-toast";
 import { FaSpinner } from "react-icons/fa";
 
-export default function ForwardDak() {
+export default function ForwardDak({ onClose, preDak }) {
   const [dakId, setDakId] = useState("");
   const [userId, setUserId] = useState("");
   const [advice, setAdvice] = useState("");
@@ -14,14 +14,25 @@ export default function ForwardDak() {
 
   const fetchDaks = async () => {
     try {
-      const res = await api.get("/dak/list");
-      const opt = res.data.map((dak) => ({
-        value: dak._id,
-        label: dak.subject,
-        date: dak.createdAt,
-      }));
-      opt.sort((a, b) => new Date(b.date) - new Date(a.date));
-      setDaks(opt);
+      if (preDak) {
+        const opt = [preDak].map((dak) => ({
+          value: dak._id,
+          label: dak.subject,
+          date: dak.createdAt,
+        }));
+        setDaks(opt);
+        setDakId(preDak._id);
+      } else {
+        const res = await api.get("/dak/list");
+
+        const opt = res.data.map((dak) => ({
+          value: dak._id,
+          label: dak.subject,
+          date: dak.createdAt,
+        }));
+        opt.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setDaks(opt);
+      }
     } catch (err) {
       console.error(err);
       toast.error("Failed to load Daks.");
@@ -73,6 +84,9 @@ export default function ForwardDak() {
       toast.error(err.response?.data?.message || "Error forwarding Dak.");
     } finally {
       setLoading(false);
+      if (preDak) {
+        onClose();
+      }
     }
   };
 
@@ -87,7 +101,15 @@ export default function ForwardDak() {
             options={daks}
             onChange={(selected) => setDakId(selected?.value)}
             placeholder="Search Dak by Subject..."
-            value={daks.find((d) => d.value === dakId) || null}
+            value={
+              preDak
+                ? [preDak].map((dak) => ({
+                    value: dak._id,
+                    label: dak.subject,
+                    date: dak.createdAt,
+                  }))
+                : daks.find((d) => d.value === dakId) || null
+            }
             className="react-select-container"
           />
         </div>

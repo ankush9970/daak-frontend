@@ -55,7 +55,7 @@ export default function Login() {
 
         <form onSubmit={handleLogin}>
           <div className="mb-4">
-            <label className="block mb-1 font-medium">Email</label>
+            <label className="block mb-1 font-medium">PIN/PIS</label>
             <input
               type="text"
               pattern="\d{4}[A-Za-z]{2}\d{4}"
