@@ -9,7 +9,7 @@ export default function UploadDak() {
   const [source, setSource] = useState("mail");
   const [msg, setMsg] = useState("");
   const [heads, setHeads] = useState([]);
-  const [id, setId] = useState(Date.now());
+  const [id, setId] = useState("");
   const [subject, setSubject] = useState("");
   const [letter, setLetter] = useState("");
   const [letterDate, setLetterDate] = useState("");
@@ -20,6 +20,17 @@ export default function UploadDak() {
 
   const fileInput = useRef(null);
   const selectInput = useRef(null);
+
+  const fetchMailId = async () => {
+    try {
+      const res = await api.get("/dak/mailId");
+      // console.log(res);
+      setId(res.data.dakId);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     const fetchHeads = async () => {
       try {
@@ -46,6 +57,7 @@ export default function UploadDak() {
       }
     };
     fetchHeads();
+    fetchMailId();
   }, []);
 
   const handleFiles = (e) => {
@@ -83,7 +95,8 @@ export default function UploadDak() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setMsg(res.data.message);
-      setId(Date.now());
+      // setId(Date.now());
+      fetchMailId();
       setFiles([]);
 
       setSubject("");
