@@ -255,19 +255,7 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       name: 'Date',
       selector: (row) => new Date(row.createdAt).toLocaleDateString('en-gb'),
       sortable: true,
-    },
-    {
-      name: 'Action',
-      cell: (row) => (
-        <button
-          onClick={() => downloadDak(row._id)}
-          disabled={row.status === 'completed'}
-          className="px-3 py-1 bg-purple-600 text-white rounded text-sm"
-        >
-          {row.status !== 'completed' ? 'Cancel' : 'Solved'}
-        </button>
-      ),
-    },
+    }, 
   ];
 
 
