@@ -122,7 +122,7 @@ const ManageHead = () => {
           <thead className="bg-gray-100">
             <tr>
               <th className="px-4 py-2 border">Name</th>
-              <th className="px-4 py-2 border">Email</th>
+              <th className="px-4 py-2 border">PIN/PIS</th>
               <th className="px-4 py-2 border">Group</th>
               <th className="px-4 py-2 border">Change Role</th>
               <th className="px-4 py-2 border">Permissions</th>

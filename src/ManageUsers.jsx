@@ -44,7 +44,7 @@ const ManageUsers = () => {
     try {
       const res = await api.get("/users/role");
       console.log(res.data);
-      if (localStorage.getItem("role") === "head") {
+      if (localStorage.getItem("role") === "head" || localStorage.getItem("role") === "director" ) {
         setRoles(
           res.data.filter(
             (d) =>
@@ -63,7 +63,10 @@ const ManageUsers = () => {
     try {
       const res = await api.get("/users/group");
       // console.log(res.data);
-      setGroups(res.data);
+      localStorage.getItem("role") !== "admin"
+        ? setGroups(res.data.filter((d) => d.shortName !== "sa"))
+        : setGroups(res.data);
+      // setGroups(res.data);
     } catch (err) {
       console.error("Failed to fetch groups:", err);
     }
@@ -122,7 +125,7 @@ const ManageUsers = () => {
           <thead className="bg-gray-100">
             <tr>
               <th className="px-4 py-2 border">Name</th>
-              <th className="px-4 py-2 border">Email</th>
+              <th className="px-4 py-2 border">PIN/PIS</th>
               <th className="px-4 py-2 border">Group</th>
               <th className="px-4 py-2 border">Change Role</th>
               <th className="px-4 py-2 border">Permissions</th>

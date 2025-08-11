@@ -16,6 +16,12 @@ export default function DakReports() {
   const [searchText, setSearchText] = useState("");
   const [forwardDakId, setForwardDakId] = useState([]);
   const [forwardId, setForwardId] = useState(null);
+  const [returnId, setReturnId] = useState(null);
+  const [returnReason, setReturnReason] = useState("");
+
+  const [viewFiles, setViewFiles] = useState([]); // array of PDFs
+  const [viewOpen, setViewOpen] = useState(false);
+  const base = "https://dakmanagement.onrender.com";
 
   useEffect(() => {
     // if (localStorage.getItem("role") === "user" ) {
@@ -103,9 +109,15 @@ export default function DakReports() {
     }
   };
 
-  const returnHead = async (dakId) => {
+  const returnHead = async (e) => {
+    e.preventDefault();
+
+    if (!returnReason) return toast.error("Reason is required.");
+    setLoading(true);
     try {
-      const res = await api.get(`/dak/dak-return/${dakId}`);
+      const res = await api.put(`/dak/dak-return/${returnId}`, {
+        returnReason,
+      });
       res.data.message
         ? toast.success(res.data.message)
         : toast.error(res.data.error);
@@ -113,6 +125,9 @@ export default function DakReports() {
     } catch (err) {
       console.log(err);
       toast.error("Failed to return");
+    } finally {
+      setLoading(false);
+      setReturnId(null);
     }
   };
 
@@ -122,6 +137,16 @@ export default function DakReports() {
       r.subject?.toLowerCase().includes(searchText.toLowerCase()) ||
       r.source?.toLowerCase().includes(searchText.toLowerCase())
   );
+
+  const handleViewFiles = async (dakId) => {
+    try {
+      const res = await api.get(`/dak/view/${dakId}`);
+      setViewFiles(res.data.files); // array of { url, originalName }
+      setViewOpen(true);
+    } catch (err) {
+      toast.error("Failed to load PDFs");
+    }
+  };
 
   const columns = [
     {
@@ -176,9 +201,15 @@ export default function DakReports() {
             setForwardId(row._id);
           }}
           className="mb-1 px-3 py-1 bg-green-700 text-white rounded text-sm hover:bg-green-800"
-          disabled={row.status === "uploaded" ? false : true}
+          disabled={
+            row.status === "uploaded" || row.status === "returned_to_head"
+              ? false
+              : true
+          }
         >
-          {row.status === "uploaded" ? "Select" : "Forwarded"}
+          {row.status === "uploaded" || row.status === "returned_to_head"
+            ? "Select"
+            : "Forwarded"}
         </button>
       ),
     },
@@ -218,9 +249,15 @@ export default function DakReports() {
           >
             Download
           </button>
+          <button
+            onClick={() => handleViewFiles(row._id)}
+            className="mb-1 px-3 py-1 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700"
+          >
+            View
+          </button>
           {localStorage.getItem("role") === "user" ? (
             <button
-              onClick={() => returnHead(row._id)}
+              onClick={() => setReturnId(row._id)}
               hidden={row.isReturned ? true : false}
               className="mb-1 px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
             >
@@ -372,6 +409,86 @@ export default function DakReports() {
               onClose={() => setForwardId(null)}
               preDak={forwardDakId}
             />
+          </div>
+        </div>
+      )}
+
+      {returnId !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">Return Dak</h3>
+              <button
+                onClick={() => setReturnId(null)}
+                className="text-gray-500 hover:text-black"
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={returnHead} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium">
+                  Return with Reason
+                </label>
+                <textarea
+                  value={returnReason}
+                  onChange={(e) => setReturnReason(e.target.value)}
+                  className="border p-3 rounded w-full mb-4"
+                  rows={4}
+                  placeholder="Enter your reason here..."
+                ></textarea>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setReturnId(null)}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  {loading ? "Saving..." : "Sent"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {viewOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 overflow-auto">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-4xl max-h-screen overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">View Dak Files</h3>
+              <button
+                onClick={() => setViewOpen(false)}
+                className="text-gray-500 hover:text-black"
+              >
+                ✕
+              </button>
+            </div>
+
+            {viewFiles.length === 0 ? (
+              <p>No files found</p>
+            ) : (
+              viewFiles.map((file, index) => (
+                <div key={index} className="mb-6">
+                  <h4 className="font-medium mb-2">{file.originalName}</h4>
+                  <iframe
+                    src={base + file.url}
+                    title={file.originalName}
+                    width="100%"
+                    height="600px"
+                    className="border"
+                  ></iframe>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

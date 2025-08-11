@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import api from './api';
-import Select from 'react-select';
-import toast from 'react-hot-toast';
-import DataTable from 'react-data-table-component';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { FaSpinner } from 'react-icons/fa';
+import React, { useEffect, useState } from "react";
+import api from "./api";
+import Select from "react-select";
+import toast from "react-hot-toast";
+import DataTable from "react-data-table-component";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import { FaSpinner } from "react-icons/fa";
 
 export default function UserActions() {
-  const [dakId, setDakId] = useState('');
-  const [action, setAction] = useState('');
-  const [advice, setAdvice] = useState('');
+  const [dakId, setDakId] = useState("");
+  const [action, setAction] = useState("");
+  const [advice, setAdvice] = useState("");
   const [reports, setReports] = useState([]);
   const [daks, setDaks] = useState([]);
   const [advicelist, setAdvicelist] = useState([]);
@@ -18,15 +18,14 @@ export default function UserActions() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingAdvice, setLoadingAdvice] = useState(false);
-  const [modalDakId, setModalDakId] = useState('');
+  const [modalDakId, setModalDakId] = useState("");
   const [loadingReports, setLoadingReports] = useState(false);
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [loadingDownload, setLoadingDownload] = useState([]);
 
-
   const fetchAdvice = async () => {
     try {
-      const res = await api.get('/dak/user-reports');
+      const res = await api.get("/dak/user-reports");
       // const sorted = ;
       // const options = res.data.sort(
       //     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -34,7 +33,8 @@ export default function UserActions() {
       //   value: dak._id,
       //   label: `${dak.subject} (${dak.mail_id})`,
       // }));
-      const opt = res.data.filter(d => d.userAdviceRequest.some(val => val.status !== 'NA'))
+      const opt = res.data
+        .filter((d) => d.userAdviceRequest.some((val) => val.status !== "NA"))
         .map((val, ind) => {
           return val.userAdviceRequest.map((req, i) => ({
             _id: val._id,
@@ -46,14 +46,15 @@ export default function UserActions() {
             headResponse: req.headResponse,
             updatedAt: req.updatedAt,
           }));
-        }).flat();
-opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        })
+        .flat();
+      opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       // console.log(opt);
 
       setAdvicelist(opt);
     } catch (err) {
       console.error(err);
-      toast.error('Failed to load Daks');
+      toast.error("Failed to load Daks");
     }
   };
 
@@ -61,18 +62,19 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     const fetchDaks = async () => {
       setLoading(true);
       try {
-        const res = await api.get('/dak/user-reports');
+        const res = await api.get("/dak/user-reports");
         // const sorted = ;
-        const options = res.data.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        ).filter((d) => d.status !== 'completed').map((dak) => ({
-          value: dak._id,
-          label: `${dak.subject} (${dak.mail_id})`,
-        }));
+        const options = res.data
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .filter((d) => d.status !== "completed")
+          .map((dak) => ({
+            value: dak._id,
+            label: `${dak.subject} (${dak.mail_id})`,
+          }));
         setDaks(options);
       } catch (err) {
         console.error(err);
-        toast.error('Failed to load Daks');
+        toast.error("Failed to load Daks");
       } finally {
         setLoading(false);
       }
@@ -84,32 +86,37 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const markAction = async () => {
     if (!dakId || !action.trim()) {
-      toast.error('Dak and Action are required.');
+      toast.error("Dak and Action are required.");
       return;
     }
     try {
-      await api.post('/dak/mark-action', { dakId, action });
-      toast.success('Action marked successfully!');
-      setAction('');
+      await api.post("/dak/mark-action", { dakId, action });
+      toast.success("Action marked successfully!");
+      setAction("");
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Action failed');
+      toast.error(err.response?.data?.message || "Action failed");
     }
   };
 
   const requestAdvice = async () => {
     if (!dakId || !advice.trim()) {
-      toast.error('Dak and Advice Query are required.');
+      toast.error("Dak and Advice Query are required.");
       return;
     }
     setLoadingAdvice(true);
     try {
-      const res = await api.post('/dak/request-advice', { dakId, query: advice });
-      res.data.message ? toast.success(res.data.message) : toast.error(res.data.error);
-      setAdvice('');
-      setDakId('');
+      const res = await api.post("/dak/request-advice", {
+        dakId,
+        query: advice,
+      });
+      res.data.message
+        ? toast.success(res.data.message)
+        : toast.error(res.data.error);
+      setAdvice("");
+      setDakId("");
       fetchAdvice();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Advice request failed');
+      toast.error(err.response?.data?.message || "Advice request failed");
     } finally {
       setLoadingAdvice(false);
     }
@@ -117,24 +124,24 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const downloadDak = async (id) => {
     if (!dakId && !id) {
-      toast.error('Select a Dak first.');
+      toast.error("Select a Dak first.");
       return;
     }
     const finalId = dakId || id;
     setLoadingDownload(true);
     try {
       const res = await api.get(`/dak/download/${finalId}`, {
-        responseType: 'blob',
+        responseType: "blob",
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', `dak_${dakId}_all_pdfs.zip`);
+      link.setAttribute("download", `dak_${dakId}_all_pdfs.zip`);
       document.body.appendChild(link);
       link.click();
-      toast.success('Download started.');
+      toast.success("Download started.");
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Download failed');
+      toast.error(err.response?.data?.message || "Download failed");
     } finally {
       setLoadingDownload(false);
     }
@@ -143,11 +150,11 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const getReports = async () => {
     setLoadingReports(true);
     try {
-      const res = await api.get('/dak/user-reports?type=received');
+      const res = await api.get("/dak/user-reports?type=received");
       setReports(res.data);
-      toast.success('Reports loaded!');
+      toast.success("Reports loaded!");
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Reports load failed');
+      toast.error(err.response?.data?.message || "Reports load failed");
     } finally {
       setLoadingReports(false);
     }
@@ -155,18 +162,20 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const exportPDF = () => {
     const doc = new jsPDF();
-    doc.text('User Dak Reports', 7, 8);
+    doc.text("User Dak Reports", 7, 8);
     const rows = reports.map((dak, index) => [
       index + 1,
       dak.mail_id,
       dak.subject,
-      dak.letterNumber || '',
-      dak.lab || '',
-      dak.source || '',
-      new Date(dak.createdAt).toLocaleDateString('en-gb'),
+      dak.letterNumber || "",
+      dak.lab || "",
+      dak.source || "",
+      new Date(dak.createdAt).toLocaleDateString("en-gb"),
     ]);
     autoTable(doc, {
-      head: [['Sno', 'Dak ID', 'Subject', 'Letter Number', 'Lab', 'Source', 'Date']],
+      head: [
+        ["Sno", "Dak ID", "Subject", "Letter Number", "Lab", "Source", "Date"],
+      ],
       body: rows,
     });
     doc.save(`User_Dak_Reports_${new Date().getTime()}.pdf`);
@@ -174,33 +183,40 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const openTrackingModal = async (dakId) => {
     try {
-
       setLoadingTracks(true);
       const res = await api.get(`/dak/${dakId}/tracking`);
-      const logs = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const logs = res.data.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
       setTrackingLogs(logs);
       setShowModal(true);
       setLoadingTracks(false);
       setModalDakId(dakId);
     } catch (err) {
       setShowModal(false);
-      toast.error('Failed to load tracking logs');
+      toast.error("Failed to load tracking logs");
     }
   };
-  const ExpandedComponent = ({ data }) => <pre>{JSON.stringify(data, null, 2)}</pre>;
-  const [viewModal, setViewModal] = useState({ open: false, title: '', content: '' });
+  const ExpandedComponent = ({ data }) => (
+    <pre>{JSON.stringify(data, null, 2)}</pre>
+  );
+  const [viewModal, setViewModal] = useState({
+    open: false,
+    title: "",
+    content: "",
+  });
 
   const openViewModal = (title, content) => {
     setViewModal({ open: true, title, content });
   };
 
   const closeViewModal = () => {
-    setViewModal({ open: false, title: '', content: '' });
+    setViewModal({ open: false, title: "", content: "" });
   };
 
   const columns = [
     {
-      name: 'Query',
+      name: "Query",
       selector: (row) => row.message,
       sortable: true,
       cell: (row) => (
@@ -218,12 +234,12 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       ),
     },
     {
-      name: 'Status',
+      name: "Status",
       selector: (row) => row.status,
-      sortable: true
+      sortable: true,
     },
     {
-      name: 'Subject',
+      name: "Subject",
       selector: (row) => row.subject,
       sortable: true,
       cell: (row) => (
@@ -233,11 +249,11 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       ),
     },
     {
-      name: 'Response',
+      name: "Response",
       cell: (row) => (
         <div className="max-w-[180px] truncate" title={row.headResponse}>
-          <p className={row.headResponse ? '' : 'text-red-600'}>
-            {row.headResponse || 'Waiting'}
+          <p className={row.headResponse ? "" : "text-red-600"}>
+            {row.headResponse || "Waiting"}
           </p>
           {row.headResponse && row.headResponse.length > 50 && (
             <button
@@ -252,12 +268,11 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       sortable: true,
     },
     {
-      name: 'Date',
-      selector: (row) => new Date(row.createdAt).toLocaleDateString('en-gb'),
+      name: "Date",
+      selector: (row) => new Date(row.createdAt).toLocaleDateString("en-gb"),
       sortable: true,
-    }, 
+    },
   ];
-
 
   return (
     <div className="p-6 bg-white rounded shadow w-full">
@@ -266,7 +281,7 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       <div className="mb-4">
         <Select
           options={daks}
-          value={daks.find(opt => opt.value === dakId) || null}
+          value={daks.find((opt) => opt.value === dakId) || null}
           onChange={(selected) => setDakId(selected?.value)}
           placeholder="Search Pending Dak by subject..."
           className="mb-4"
@@ -300,7 +315,12 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             onClick={requestAdvice}
             disabled={loadingAdvice}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >{loadingAdvice?<FaSpinner className="inline animate-spin mr-2" />:'Request Advice'}
+          >
+            {loadingAdvice ? (
+              <FaSpinner className="inline animate-spin mr-2" />
+            ) : (
+              "Request Advice"
+            )}
           </button>
         </div>
 
@@ -330,11 +350,14 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         </div>
       </div>
 
-      {loading ? <tr>
-        <td colSpan="5" className="text-center py-4">
-          <FaSpinner className="animate-spin inline mr-2" />
-          Loading...</td>
-      </tr> : (
+      {loading ? (
+        <tr>
+          <td colSpan="5" className="text-center py-4">
+            <FaSpinner className="animate-spin inline mr-2" />
+            Loading...
+          </td>
+        </tr>
+      ) : (
         <DataTable
           columns={columns}
           data={advicelist}
@@ -363,15 +386,21 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
               Close
             </button>
             <div className="max-h-96 overflow-y-auto">
-              {trackingLogs.length > 0 ? trackingLogs.map(log => (
-                <div key={log._id} className="mb-4 border-b pb-2">
-                  <p><strong>{log.action}</strong> by {log.actor?.name}</p>
-                  <p className="text-sm">{log.details}</p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(log.createdAt).toLocaleString('en-gb')}
-                  </p>
-                </div>
-              )) : <p>No logs found.</p>}
+              {trackingLogs.length > 0 ? (
+                trackingLogs.map((log) => (
+                  <div key={log._id} className="mb-4 border-b pb-2">
+                    <p>
+                      <strong>{log.action}</strong> by {log.actor?.name}
+                    </p>
+                    <p className="text-sm">{log.details}</p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(log.createdAt).toLocaleString("en-gb")}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p>No logs found.</p>
+              )}
             </div>
           </div>
         </div>
@@ -392,8 +421,6 @@ opt.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
           </div>
         </div>
       )}
-
     </div>
-
   );
 }
