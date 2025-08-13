@@ -189,30 +189,36 @@ export default function DakReports() {
       sortable: true,
       wrap: true,
     },
-    {
-      name: "Forward",
-      selector: (row) => row.status || "",
-      sortable: true,
-      wrap: true,
-      cell: (row) => (
-        <button
-          onClick={() => {
-            setForwardDakId(row);
-            setForwardId(row._id);
-          }}
-          className="mb-1 px-3 py-1 bg-green-700 text-white rounded text-sm hover:bg-green-800"
-          disabled={
-            row.status === "uploaded" || row.status === "returned_to_head"
-              ? false
-              : true
-          }
-        >
-          {row.status === "uploaded" || row.status === "returned_to_head"
-            ? "Select"
-            : "Forwarded"}
-        </button>
-      ),
-    },
+
+    ...(!(localStorage.getItem("role").includes("distributor")||localStorage.getItem("role").includes( "user"))
+      ? [
+          {
+            name: "Forward",
+            selector: (row) => row.status || "",
+            sortable: true,
+            wrap: true,
+            cell: (row) => (
+              <button
+                onClick={() => {
+                  setForwardDakId(row);
+                  setForwardId(row._id);
+                }}
+                className="mb-1 px-3 py-1 bg-green-700 text-white rounded text-sm hover:bg-green-800"
+                disabled={
+                  row.status === "uploaded" || row.status === "returned_to_head"
+                    ? false
+                    : true
+                }
+              >
+                {row.status === "uploaded" || row.status === "returned_to_head"
+                  ? "Select"
+                  : "Forwarded"}
+              </button>
+            ),
+          },
+        ]
+      : []),
+
     {
       name: "Sent To",
       selector: (row) => row.receivedBy?.name || "",
