@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
-import { useAuth } from './AuthContext';
-import UploadDak from './UploadDak';
-import ForwardDak from './ForwardDak';
-import DakReports from './DakReports';
-import SendReminder from './SendReminder';
-import UserActions from './UserActions';
-import ProfileEditModal from './ProfileEditModal';
-import ChangePasswordModal from './ChangePasswordModal';
-import { Helmet } from 'react-helmet';
-import NotificationBell from './NotificationBell';
-import ManageUsers from './ManageUsers';
-import AdviceReport from './AdviceReport';
-import ManageHead from './ManageHead';
+import React, { useState } from "react";
+import { useAuth } from "./AuthContext";
+import UploadDak from "./UploadDak";
+import ForwardDak from "./ForwardDak";
+import DakReports from "./DakReports";
+import SendReminder from "./SendReminder";
+import UserActions from "./UserActions";
+import ProfileEditModal from "./ProfileEditModal";
+import ChangePasswordModal from "./ChangePasswordModal";
+import { Helmet } from "react-helmet";
+import NotificationBell from "./NotificationBell";
+import ManageUsers from "./ManageUsers";
+import AdviceReport from "./AdviceReport";
+import ManageHead from "./ManageHead";
+import ManageGroup from "./ManageGroup";
 
 export default function Dashboard() {
   const { user, logout, setUser } = useAuth();
-  const [active, setActive] = useState('');
+  const [active, setActive] = useState("");
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showChangePass, setShowChangePass] = useState(false);
 
@@ -23,28 +24,37 @@ export default function Dashboard() {
 
   const { name, role, permissions } = user;
 
-
-
   const hasPermission = (p) =>
-    role.toLowerCase() === 'admin' || permissions.includes('ALL') || permissions.includes(p);
+    role.toLowerCase() === "admin" ||
+    permissions.includes("ALL") ||
+    permissions.includes(p);
 
   const menuItems = [
-    { key: 'UPLOAD', label: 'Upload & Forward Dak', component: <UploadDak /> },
-    { key: 'FORWARD', label: 'Forward Dak', component: <ForwardDak /> },
-    { key: 'REPORT', label: 'Dak Reports', component: <DakReports /> },
-    { key: 'REMINDER', label: 'Send Reminder', component: <SendReminder /> },
-    { key: 'USER_ACTIONS', label: 'User Actions', component: <UserActions /> },
-      { key: 'MANAGE_USERS', label: 'Manage Users', component: <ManageUsers /> },
-      { key: 'MANAGE_HEAD', label: 'Manage Group Head', component: <ManageHead /> },
-      { key: 'MANAGE_ADVICE', label: 'Manage Advice', component: <AdviceReport /> },
+    { key: "UPLOAD", label: "Upload & Forward Dak", component: <UploadDak /> },
+    { key: "FORWARD", label: "Forward Dak", component: <ForwardDak /> },
+    { key: "REPORT", label: "Dak Reports", component: <DakReports /> },
+    { key: "REMINDER", label: "Send Reminder", component: <SendReminder /> },
+    { key: "USER_ACTIONS", label: "User Actions", component: <UserActions /> },
+    { key: "MANAGE_USERS", label: "Manage Users", component: <ManageUsers /> },
+    {
+      key: "MANAGE_HEAD",
+      label: "Manage Group Head",
+      component: <ManageHead />,
+    },
+    { key: "MANAGE_GROUP", label: "Manage Groups", component: <ManageGroup /> },
+    {
+      key: "MANAGE_ADVICE",
+      label: "Manage Advice",
+      component: <AdviceReport />,
+    },
   ];
 
   const allowedItems = menuItems.filter((item) => {
-    if (item.key === 'USER_ACTIONS') {
+    if (item.key === "USER_ACTIONS") {
       return (
-        hasPermission('READ') ||
-        hasPermission('ACTION') ||
-        hasPermission('REQUEST_ADVICE')
+        hasPermission("READ") ||
+        hasPermission("ACTION") ||
+        hasPermission("REQUEST_ADVICE")
       );
     }
     return hasPermission(item.key);
@@ -67,17 +77,14 @@ export default function Dashboard() {
               alt="Profile"
             />
             <div className="flex items-center gap-2 relative">
-  <div className="flex items-center gap-3">
-  <h2 className="text-lg font-semibold">{name}</h2>
-  <NotificationBell />
-</div>
-</div>
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-semibold">{name}</h2>
+                <NotificationBell />
+              </div>
+            </div>
 
             <p className="text-gray-500 text-sm capitalize">{role}</p>
           </div>
-          
-
-
 
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto">
@@ -85,8 +92,9 @@ export default function Dashboard() {
               <button
                 key={item.key}
                 onClick={() => setActive(item.key)}
-                className={`w-full text-left px-6 py-3 hover:bg-gray-200 ${active === item.key ? 'bg-gray-200 font-bold' : ''
-                  }`}
+                className={`w-full text-left px-6 py-3 hover:bg-gray-200 ${
+                  active === item.key ? "bg-gray-200 font-bold" : ""
+                }`}
               >
                 {item.label}
               </button>
@@ -128,7 +136,10 @@ export default function Dashboard() {
       {showEditProfile && (
         <ProfileEditModal
           user={user}
-          onClose={() => setShowEditProfile(false)} onUpdated={(update) => { setUser({ ...user, name: update.name }) }}
+          onClose={() => setShowEditProfile(false)}
+          onUpdated={(update) => {
+            setUser({ ...user, name: update.name });
+          }}
         />
       )}
       {showChangePass && (
