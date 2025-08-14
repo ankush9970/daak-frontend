@@ -206,12 +206,16 @@ export default function DakReports() {
                 }}
                 className="mb-1 px-3 py-1 bg-green-700 text-white rounded text-sm hover:bg-green-800"
                 disabled={
-                  row.status === "uploaded" || row.status === "returned_to_head" || row.status === "sent_to_head"
+                  row.status === "uploaded" ||
+                  row.status === "returned_to_head" ||
+                  row.status === "sent_to_head"
                     ? false
                     : true
                 }
               >
-                {row.status === "uploaded" || row.status === "returned_to_head"|| row.status === "sent_to_head"
+                {row.status === "uploaded" ||
+                row.status === "returned_to_head" ||
+                row.status === "sent_to_head"
                   ? "Select"
                   : "Forwarded"}
               </button>
