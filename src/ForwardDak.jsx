@@ -41,7 +41,12 @@ export default function ForwardDak({ onClose, preDak }) {
 
   const fetchUsers = async () => {
     try {
-      const res = await api.get("/users/users");
+      let res;
+      if (localStorage.getItem("role") === "director") {
+        res = await api.get("/users/heads");
+      } else {
+        res = await api.get("/users/users");
+      }
       const opt = res.data.map((user) => ({
         value: user._id,
         label: `${user.name} ${user.email}`,
