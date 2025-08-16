@@ -20,7 +20,11 @@ const ManageGroup = () => {
     try {
       const res = await api.get("/users/group");
       localStorage.getItem("role") !== "admin"
-        ? setGroups(res.data.filter((d) => d.shortName !== "sa"))
+        ? setGroups(
+            res.data.filter(
+              (d) => d.shortName.toLowerCase() !== "sa".toLowerCase()
+            )
+          )
         : setGroups(res.data);
       // setGroups(res.data);
     } catch (err) {

@@ -136,6 +136,7 @@ export default function DakReports() {
     (r) =>
       r.mail_id?.toLowerCase().includes(searchText.toLowerCase()) ||
       r.subject?.toLowerCase().includes(searchText.toLowerCase()) ||
+      r.letterNumber?.toLowerCase().includes(searchText.toLowerCase()) ||
       r.source?.toLowerCase().includes(searchText.toLowerCase())
   );
 
@@ -211,6 +212,14 @@ export default function DakReports() {
                   row.status === "sent_to_head"
                     ? false
                     : true
+                }
+                hidden={
+                  (row.status === "uploaded" ||
+                    row.status === "sent_to_head") &&
+                  hasPermission("FORWARD-HEAD") &&
+                  row?.sentTo
+                    ? true
+                    : false
                 }
               >
                 {row.status === "uploaded" ||

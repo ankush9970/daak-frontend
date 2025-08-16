@@ -21,17 +21,6 @@ const ManageHead = () => {
     setLoading(true);
     try {
       const res = await api.get("/users/heads");
-      //   const filtered = res.data.filter(
-      //     (d) =>
-      //       d.role.name !== "head" &&
-      //       d.role.name !== "director" &&
-      //       d.role.name !== "admin"
-      //   );
-      //   console.log(
-      //     filtered.sort((a, b) => a.group.name.localeCompare(b.group.name))
-      //   );
-      //   console.log(res.data);
-
       setUsers(
         res.data.sort((a, b) => a.group.name.localeCompare(b.group.name))
       );
@@ -46,7 +35,7 @@ const ManageHead = () => {
     try {
       const res = await api.get("/users/group");
       localStorage.getItem("role") !== "admin"
-        ? setGroups(res.data.filter((d) => d.shortName !== "sa"))
+        ? setGroups(res.data.filter((d) => d.shortName.toLowerCase() !== "sa"))
         : setGroups(res.data);
       // setGroups(res.data);
     } catch (err) {
@@ -70,10 +59,34 @@ const ManageHead = () => {
     }
   };
 
+  const handleGroupChange = async (userId, newGroupId) => {
+    console.log(userId);
+    if (!userId || !newGroupId) return toast.error("Invalid Group");
+    try {
+      setUpdatingUserId(userId);
+      const res = await api.post(`/users/assign-group`, {
+        userId: userId,
+        groupId: newGroupId,
+      });
+      fetchUsers();
+      res.data.message
+        ? toast.success(res.data.message)
+        : toast.error(res.data.error);
+    } catch (err) {
+      console.error("Error updating role:", err);
+      toast.error("failed to update group");
+    } finally {
+      setUpdatingUserId(null);
+    }
+  };
+
   const handleRoleChange = async (userId, newRoleId) => {
     try {
       setUpdatingUserId(userId);
-      await api.post(`/assign-role`, { userId: userId, roleId: newRoleId });
+      await api.post(`/users/assign-role`, {
+        userId: userId,
+        roleId: newRoleId,
+      });
       fetchUsers();
     } catch (err) {
       console.error("Error updating role:", err);
@@ -124,7 +137,9 @@ const ManageHead = () => {
               <th className="px-4 py-2 border">Name</th>
               <th className="px-4 py-2 border">PIN/PIS</th>
               <th className="px-4 py-2 border">Group</th>
-              <th className="px-4 py-2 border">Change Role</th>
+              {hasPermission("change-role") && (
+                <th className="px-4 py-2 border">Change Role</th>
+              )}
               <th className="px-4 py-2 border">Permissions</th>
               {hasPermission("reset-password") && (
                 <th className="px-4 py-2 border">Reset Password</th>
@@ -147,26 +162,43 @@ const ManageHead = () => {
                   <tr key={u._id} className="hover:bg-gray-50">
                     <td className="px-4 py-2 border">{u.name}</td>
                     <td className="px-4 py-2 border">{u.email}</td>
-                    <td className="px-4 py-2 border capitalize">
-                      {u.group?.name || "N/A"}
-                    </td>
+
                     <td className="px-4 py-2 border">
                       <select
                         className="border px-2 py-1 rounded capitalize"
-                        value={u.role?._id || u.role || ""}
+                        value={u.group?._id || u.group || ""}
                         onChange={(e) =>
-                          handleRoleChange(u._id, e.target.value)
+                          handleGroupChange(u._id, e.target.value)
                         }
                         disabled={updatingUserId === u._id}
                       >
                         <option value="">Select</option>
-                        {roles.map((role) => (
-                          <option key={role._id} value={role._id}>
-                            {role.name}
+                        {groups.map((group) => (
+                          <option key={group._id} value={group._id}>
+                            {group.name}
                           </option>
                         ))}
                       </select>
                     </td>
+                    {hasPermission("change-role") && (
+                      <td className="px-4 py-2 border">
+                        <select
+                          className="border px-2 py-1 rounded capitalize"
+                          value={u.role?._id || u.role || ""}
+                          onChange={(e) =>
+                            handleRoleChange(u._id, e.target.value)
+                          }
+                          disabled={updatingUserId === u._id}
+                        >
+                          <option value="">Select</option>
+                          {roles.map((role) => (
+                            <option key={role._id} value={role._id}>
+                              {role.name}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                    )}
                     <td className="px-4 py-2 border">
                       <button
                         className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
