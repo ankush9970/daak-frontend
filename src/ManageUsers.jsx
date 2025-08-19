@@ -220,7 +220,7 @@ const ManageUsers = () => {
                           setDrawerOpen(true);
                         }}
                       >
-                        Manage
+                        Permission
                       </button>
                     </td>
                     {hasPermission("reset-password") && (

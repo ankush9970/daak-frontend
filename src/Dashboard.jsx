@@ -31,7 +31,7 @@ export default function Dashboard() {
 
   const menuItems = [
     { key: "UPLOAD", label: "Upload & Forward Dak", component: <UploadDak /> },
-    { key: "FORWARD", label: "Forward Dak", component: <ForwardDak /> },
+    // { key: "FORWARD", label: "Forward Dak", component: <ForwardDak /> },
     { key: "REPORT", label: "Dak Reports", component: <DakReports /> },
     { key: "REMINDER", label: "Send Reminder", component: <SendReminder /> },
     { key: "USER_ACTIONS", label: "User Actions", component: <UserActions /> },

@@ -372,7 +372,7 @@ export default function DakReports() {
 
         <input
           type="text"
-          placeholder="Search Dak ID / Subject / Source"
+          placeholder="Search Dak ID / Subject / Source / Letter No."
           className="flex-1 px-3 py-1 border rounded-md"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
