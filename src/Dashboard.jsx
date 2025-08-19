@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "./AuthContext";
 import UploadDak from "./UploadDak";
-import ForwardDak from "./ForwardDak";
 import DakReports from "./DakReports";
 import SendReminder from "./SendReminder";
 import UserActions from "./UserActions";
@@ -13,6 +12,7 @@ import ManageUsers from "./ManageUsers";
 import AdviceReport from "./AdviceReport";
 import ManageHead from "./ManageHead";
 import ManageGroup from "./ManageGroup";
+import ManageWAP from "./ManageWAP";
 
 export default function Dashboard() {
   const { user, logout, setUser } = useAuth();
@@ -36,6 +36,7 @@ export default function Dashboard() {
     { key: "REMINDER", label: "Send Reminder", component: <SendReminder /> },
     { key: "USER_ACTIONS", label: "User Actions", component: <UserActions /> },
     { key: "MANAGE_USERS", label: "Manage Users", component: <ManageUsers /> },
+    { key: "WAP", label: "Manage WAP", component: <ManageWAP /> },
     {
       key: "MANAGE_HEAD",
       label: "Manage Group Head",

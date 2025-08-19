@@ -9,6 +9,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (
@@ -22,6 +23,7 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setMsg("");
     try {
       const res = await api.post("/auth/login", { email, password });
@@ -42,6 +44,8 @@ export default function Login() {
       navigate("/dashboard");
     } catch (err) {
       setMsg(err.response?.data?.message || "Login failed");
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -55,7 +59,7 @@ export default function Login() {
 
         <form onSubmit={handleLogin}>
           <div className="mb-4">
-            <label className="block mb-1 font-medium">PIN/PIS</label>
+            <label className="block mb-1 font-semibold">PIN/PIS</label>
             <input
               type="text"
               pattern="\d{4}[A-Za-z]{2}\d{4}"
@@ -69,7 +73,7 @@ export default function Login() {
             />
           </div>
           <div className="mb-6">
-            <label className="block mb-1 font-medium">Password</label>
+            <label className="block mb-1 font-semibold">Password</label>
             <input
               type="password"
               value={password}
@@ -80,9 +84,10 @@ export default function Login() {
           </div>
           <button
             type="submit"
+            disabled={loading}
             className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-          >
-            Login
+          >{loading ?"Logging in" :"Login"}
+            
           </button>
         </form>
       </div>
