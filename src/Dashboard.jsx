@@ -36,7 +36,7 @@ export default function Dashboard() {
     { key: "REMINDER", label: "Send Reminder", component: <SendReminder /> },
     { key: "USER_ACTIONS", label: "User Actions", component: <UserActions /> },
     { key: "MANAGE_USERS", label: "Manage Users", component: <ManageUsers /> },
-    { key: "WAP", label: "Manage WAP", component: <ManageWAP /> },
+    { key: "MANAGE-WAP", label: "Manage WAP", component: <ManageWAP /> },
     {
       key: "MANAGE_HEAD",
       label: "Manage Group Head",
