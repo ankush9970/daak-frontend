@@ -13,6 +13,7 @@ import AdviceReport from "./AdviceReport";
 import ManageHead from "./ManageHead";
 import ManageGroup from "./ManageGroup";
 import ManageWAP from "./ManageWAP";
+import UserWAP from "./UserWAP";
 
 export default function Dashboard() {
   const { user, logout, setUser } = useAuth();
@@ -48,6 +49,7 @@ export default function Dashboard() {
       label: "Manage Advice",
       component: <AdviceReport />,
     },
+    { key: "USER-WAP", label: "Work Assigned", component: <UserWAP /> },
   ];
 
   const allowedItems = menuItems.filter((item) => {

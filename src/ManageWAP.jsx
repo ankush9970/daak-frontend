@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import api from "./api";
 import Select from "react-select";
+import DataTable from "react-data-table-component";
 
 const ManageWAP = () => {
   const [waps, setWaps] = useState([]);
@@ -138,10 +139,51 @@ const ManageWAP = () => {
     }
   };
 
+  // Define columns for DataTable
+  const columns = [
+    {
+      name: "User",
+      selector: (row) => row.user?.name || "Unknown",
+      sortable: true,
+    },
+    {
+      name: "Task",
+      selector: (row) => row.task,
+      sortable: true,
+      cell: (row) => (
+        <div className="truncate" title={row.task}>
+          {row.task}
+        </div>
+      ),
+    },
+    {
+      name: "Status",
+      selector: (row) => (row.status ? "Completed" : "Pending"),
+      sortable: true,
+    },
+    {
+      name: "Action",
+      cell: (row) => (
+        <button
+          onClick={() => openEditModal(row)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+        >
+          Edit
+        </button>
+      ),
+    },
+    {
+      name: "Date Created",
+      selector: (row) => new Date(row.createdAt).toLocaleDateString("en-gb"),
+      sortable: true,
+    },
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow mt-10">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Manage WAPs</h2>
+    <div className="p-4 border rounded bg-gray-50">
+      <h2 className="text-xl font-semibold mb-4">Manage Work Allocation</h2>
+
+      <div className="flex flex-wrap gap-2 mb-4">
         <button
           onClick={() => setModalOpen(true)}
           className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
@@ -150,56 +192,14 @@ const ManageWAP = () => {
         </button>
       </div>
 
-      {/* WAPs Data Table */}
-      <table className="w-full border-collapse border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-300 p-2 text-left">User</th>
-            <th className="border border-gray-300 p-2 text-left">WAP Task</th>
-            <th className="border border-gray-300 p-2 text-left">Status</th>
-            <th className="border border-gray-300 p-2 text-left">Action</th>
-            <th className="border border-gray-300 p-2 text-left">
-              Date Created
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {waps.length === 0 && (
-            <tr>
-              <td colSpan="5" className="p-4 text-center text-gray-500">
-                No WAPs found.
-              </td>
-            </tr>
-          )}
-          {waps.map((wap) => (
-            <tr key={wap._id}>
-              <td className="border border-gray-300 p-2">
-                {wap.user?.name || "Unknown"}
-              </td>
-              <td
-                className="border border-gray-300 p-2 truncate max-w-xs"
-                title={wap.task}
-              >
-                {wap.task}
-              </td>
-              <td className="border border-gray-300 p-2">
-                {wap.status ? "Completed" : "Pending"}
-              </td>
-              <td className="border border-gray-300 p-2">
-                <button
-                  onClick={() => openEditModal(wap)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
-                >
-                  Edit
-                </button>
-              </td>
-              <td className="border border-gray-300 p-2">
-                {new Date(wap.createdAt).toLocaleDateString("en-gb")}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* DataTable */}
+      <DataTable
+        columns={columns}
+        data={waps}
+        pagination
+        progressPending={loading}
+        noDataComponent="No WAPs found."
+      />
 
       {/* Create Modal */}
       {modalOpen && (
