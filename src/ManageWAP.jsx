@@ -9,11 +9,11 @@ const ManageWAP = () => {
   const [userOptions, setUserOptions] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Form state for new WAP
+  // Form state
   const [userId, setUserId] = useState("");
   const [newWapTask, setNewWapTask] = useState("");
 
-  // Modal visibility state for create modal
+  // Modal visibility
   const [modalOpen, setModalOpen] = useState(false);
 
   // Edit modal state
@@ -21,7 +21,7 @@ const ManageWAP = () => {
   const [editUserId, setEditUserId] = useState("");
   const [editTask, setEditTask] = useState("");
 
-  // Fetch users for select dropdown
+  // Fetch users for dropdown
   const fetchMember = async () => {
     setLoading(true);
     try {
@@ -66,7 +66,7 @@ const ManageWAP = () => {
     fetchWaps();
   }, []);
 
-  // Handle creating new WAP
+  // Create WAP
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -86,11 +86,7 @@ const ManageWAP = () => {
         task: newWapTask,
       });
       toast.success("WAP sent successfully!");
-
-      // Refresh WAPs list
       fetchWaps();
-
-      // Reset form & close modal
       setUserId("");
       setNewWapTask("");
       setModalOpen(false);
@@ -102,14 +98,14 @@ const ManageWAP = () => {
     }
   };
 
-  // Open edit modal and populate fields
+  // Open edit modal
   const openEditModal = (wap) => {
     setEditingWap(wap);
     setEditUserId(wap.user?._id || "");
     setEditTask(wap.task);
   };
 
-  // Handle edit submit
+  // Update WAP
   const handleEditSubmit = async (e) => {
     e.preventDefault();
 
@@ -130,7 +126,7 @@ const ManageWAP = () => {
       });
       toast.success("WAP updated successfully!");
       fetchWaps();
-      setEditingWap(null); // Close edit modal
+      setEditingWap(null);
     } catch (error) {
       console.error("Error updating WAP:", error);
       toast.error(error.data?.error || "Failed to update WAP");
@@ -139,7 +135,7 @@ const ManageWAP = () => {
     }
   };
 
-  // Define columns for DataTable
+  // Columns
   const columns = [
     {
       name: "User",
@@ -151,7 +147,7 @@ const ManageWAP = () => {
       selector: (row) => row.task,
       sortable: true,
       cell: (row) => (
-        <div className="truncate" title={row.task}>
+        <div className="truncate max-w-xs" title={row.task}>
           {row.task}
         </div>
       ),
@@ -166,7 +162,7 @@ const ManageWAP = () => {
       cell: (row) => (
         <button
           onClick={() => openEditModal(row)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           Edit
         </button>
@@ -180,34 +176,76 @@ const ManageWAP = () => {
   ];
 
   return (
-    <div className="p-4 border rounded bg-gray-50">
-      <h2 className="text-xl font-semibold mb-4">Manage Work Allocation</h2>
+    <div className="p-6 md:p-8 lg:p-10 xl:p-12 border rounded-lg bg-gray-50 shadow-lg">
+      <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+        Manage Work Allocation
+      </h2>
 
-      <div className="flex flex-wrap gap-2 mb-4">
+      {/* Create Button */}
+      <div className="flex justify-between items-center mb-6">
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
+          className="bg-yellow-600 hover:bg-yellow-700 text-white px-5 py-2 rounded-md transition duration-300"
         >
           Create WAP
         </button>
       </div>
 
       {/* DataTable */}
-      <DataTable
-        columns={columns}
-        data={waps}
-        pagination
-        progressPending={loading}
-        noDataComponent="No WAPs found."
-      />
+      <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
+        <DataTable
+          columns={columns}
+          data={waps}
+          pagination
+          progressPending={loading}
+          noDataComponent="No WAPs found."
+          highlightOnHover
+          pointerOnHover
+          responsive
+          dense
+          customStyles={{
+            table: {
+              style: {
+                minWidth: "100%",
+              },
+            },
+            headCells: {
+              style: {
+                fontWeight: "600",
+                fontSize: "14px",
+                backgroundColor: "#f9fafb",
+                padding: "10px",
+                whiteSpace: "nowrap",
+              },
+            },
+            cells: {
+              style: {
+                padding: "8px 10px",
+                fontSize: "14px",
+                whiteSpace: "normal",
+                wordBreak: "break-word",
+              },
+            },
+            rows: {
+              style: {
+                minHeight: "45px",
+              },
+            },
+          }}
+        />
+      </div>
 
       {/* Create Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h3 className="text-xl font-semibold mb-4">Create New WAP</h3>
+          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+            <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+              Create New WAP
+            </h3>
             <form onSubmit={handleSubmit}>
-              <label className="block mb-1 font-medium">Select User:</label>
+              <label className="block mb-2 font-medium text-gray-700">
+                Select User:
+              </label>
               <Select
                 options={userOptions}
                 onChange={(selected) => setUserId(selected?.value)}
@@ -216,18 +254,18 @@ const ManageWAP = () => {
                 value={userOptions.find((opt) => opt.value === userId) || null}
               />
 
-              <label className="block mb-1 font-medium">
+              <label className="block mb-2 font-medium text-gray-700">
                 Work Allocation Plan:
               </label>
               <textarea
                 value={newWapTask}
                 onChange={(e) => setNewWapTask(e.target.value)}
-                className="border p-3 rounded w-full mb-4"
+                className="border p-3 rounded-md w-full mb-4"
                 rows={4}
                 placeholder="Enter your Work Allocation Plan here..."
               ></textarea>
 
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-end space-x-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -235,14 +273,14 @@ const ManageWAP = () => {
                     setUserId("");
                     setNewWapTask("");
                   }}
-                  className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-100"
+                  className="px-5 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white px-5 py-2 rounded-md transition duration-300"
                 >
                   Send
                 </button>
@@ -255,10 +293,14 @@ const ManageWAP = () => {
       {/* Edit Modal */}
       {editingWap && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h3 className="text-xl font-semibold mb-4">Edit WAP</h3>
+          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+            <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+              Edit WAP
+            </h3>
             <form onSubmit={handleEditSubmit}>
-              <label className="block mb-1 font-medium">Select User:</label>
+              <label className="block mb-2 font-medium text-gray-700">
+                Select User:
+              </label>
               <Select
                 options={userOptions}
                 onChange={(selected) => setEditUserId(selected?.value)}
@@ -269,29 +311,29 @@ const ManageWAP = () => {
                 }
               />
 
-              <label className="block mb-1 font-medium">
+              <label className="block mb-2 font-medium text-gray-700">
                 Work Allocation Plan:
               </label>
               <textarea
                 value={editTask}
                 onChange={(e) => setEditTask(e.target.value)}
-                className="border p-3 rounded w-full mb-4"
+                className="border p-3 rounded-md w-full mb-4"
                 rows={4}
                 placeholder="Enter your Work Allocation Plan here..."
               ></textarea>
 
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-end space-x-4">
                 <button
                   type="button"
                   onClick={() => setEditingWap(null)}
-                  className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-100"
+                  className="px-5 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md transition duration-300"
                 >
                   Update
                 </button>
