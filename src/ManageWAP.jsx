@@ -3,6 +3,8 @@ import toast from "react-hot-toast";
 import api from "./api";
 import Select from "react-select";
 import DataTable from "react-data-table-component";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const ManageWAP = () => {
   const [waps, setWaps] = useState([]);
@@ -135,19 +137,21 @@ const ManageWAP = () => {
     }
   };
 
-  // Columns
   const columns = [
     {
       name: "User",
       selector: (row) => row.user?.name || "Unknown",
       sortable: true,
+      wrap: true,
     },
     {
       name: "Task",
       selector: (row) => row.task,
       sortable: true,
+      wrap: true,
+      grow: 2,
       cell: (row) => (
-        <div className="truncate max-w-xs" title={row.task}>
+        <div className="truncate max-w-[250px]" title={row.task}>
           {row.task}
         </div>
       ),
@@ -158,37 +162,92 @@ const ManageWAP = () => {
       sortable: true,
     },
     {
+      name: "Days",
+      selector: (row) => (row.requiredDays ? row.requiredDays : "N/A"),
+      sortable: true,
+      center: true,
+    },
+    {
+      name: "Date Assigned",
+      selector: (row) => new Date(row.createdAt).toLocaleDateString("en-gb"),
+      sortable: true,
+      center: true,
+    },
+    {
+      name: "Date Submitted",
+      selector: (row) =>
+        row.submitDate
+          ? new Date(row.submitDate).toLocaleDateString("en-gb")
+          : "Not Filled Yet",
+      sortable: true,
+      center: true,
+    },
+    {
       name: "Action",
+      button: true,
       cell: (row) => (
         <button
           onClick={() => openEditModal(row)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`px-4 py-2 rounded-md text-white transition bg-blue-600 hover:bg-blue-700`}
         >
           Edit
         </button>
       ),
     },
-    {
-      name: "Date Created",
-      selector: (row) => new Date(row.createdAt).toLocaleDateString("en-gb"),
-      sortable: true,
-    },
   ];
 
-  return (
-    <div className="p-6 md:p-8 lg:p-10 xl:p-12 border rounded-lg bg-gray-50 shadow-lg">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-        Manage Work Allocation
-      </h2>
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Work Assigned", 14, 20);
+    const rows = waps.map((wap, index) => [
+      index + 1,
+      wap.user?.name || "Unknown",
+      wap.task,
+      wap.status ? "Completed" : "Pending",
+      new Date(wap.createdAt).toLocaleDateString("en-gb"),
+      wap.submitDate
+        ? new Date(wap.submitDate).toLocaleDateString("en-gb")
+        : "Not Filled Yet",
+      wap.requiredDays ? wap.requiredDays : "N/A",
+    ]);
+    autoTable(doc, {
+      head: [
+        [
+          "#",
+          "User",
+          "WAP Task",
+          "Status",
+          "Date Assigned",
+          "Date Submitted",
+          "Days",
+        ],
+      ],
+      body: rows,
+    });
+    doc.save(`wap_${Date.now()}.pdf`);
+  };
 
-      {/* Create Button */}
-      <div className="flex justify-between items-center mb-6">
-        <button
-          onClick={() => setModalOpen(true)}
-          className="bg-yellow-600 hover:bg-yellow-700 text-white px-5 py-2 rounded-md transition duration-300"
-        >
-          Create WAP
-        </button>
+  return (
+    <div className="p-6 bg-white rounded-lg shadow-md w-full">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 space-y-4 sm:space-y-0">
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3 sm:mb-0">
+          Work Assigned
+        </h2>
+        <div className="flex space-x-4">
+          <button
+            onClick={() => setModalOpen(true)}
+            className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-md transition duration-300"
+          >
+            Add Work
+          </button>
+          <button
+            onClick={handleExportPDF}
+            className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-md transition duration-300"
+          >
+            Export PDF
+          </button>
+        </div>
       </div>
 
       {/* DataTable */}
