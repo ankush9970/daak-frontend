@@ -15,39 +15,17 @@ export default function DakReports() {
   const [trackingDakId, setTrackingDakId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [forwardDakId, setForwardDakId] = useState([]);
+  const [forwardDakId, setForwardDakId] = useState(null);
   const [forwardId, setForwardId] = useState(null);
   const [returnId, setReturnId] = useState(null);
   const [returnReason, setReturnReason] = useState("");
-
-  const [viewFiles, setViewFiles] = useState([]); // array of PDFs
+  const [viewFiles, setViewFiles] = useState([]);
   const [viewOpen, setViewOpen] = useState(false);
+
   const base = "https://dakmanagement.onrender.com";
 
   useEffect(() => {
-    // if (localStorage.getItem("role") === "user" ) {
-    const userData = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get(`/dak/report?type=received`);
-        const sorted = res.data.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        const finalData = sorted.map((val, ind) => ({
-          ...val,
-          sno: ind + 1,
-        }));
-        setReports(finalData);
-        // setType(reportType);
-        toast.success("Received Reports loaded!");
-      } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to load reports");
-      } finally {
-        setLoading(false);
-      }
-      // }
-    };
-    userData();
+    fetchReports("received");
   }, []);
 
   const fetchReports = async (reportType) => {
@@ -59,12 +37,8 @@ export default function DakReports() {
       const sorted = res.data.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
-      const finalData = sorted.map((val, ind) => ({
-        ...val,
-        sno: ind + 1,
-      }));
+      const finalData = sorted.map((val, ind) => ({ ...val, sno: ind + 1 }));
       setReports(finalData);
-      toast.success("Reports loaded!");
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to load reports");
     } finally {
@@ -112,7 +86,6 @@ export default function DakReports() {
 
   const returnHead = async (e) => {
     e.preventDefault();
-
     if (!returnReason) return toast.error("Reason is required.");
     setLoading(true);
     try {
@@ -124,11 +97,20 @@ export default function DakReports() {
         : toast.error(res.data.error);
       fetchReports("received");
     } catch (err) {
-      console.log(err);
       toast.error("Failed to return");
     } finally {
       setLoading(false);
       setReturnId(null);
+    }
+  };
+
+  const handleViewFiles = async (dakId) => {
+    try {
+      const res = await api.get(`/dak/view/${dakId}`);
+      setViewFiles(res.data.files);
+      setViewOpen(true);
+    } catch (err) {
+      toast.error("Failed to load PDFs");
     }
   };
 
@@ -140,23 +122,7 @@ export default function DakReports() {
       r.source?.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const handleViewFiles = async (dakId) => {
-    try {
-      const res = await api.get(`/dak/view/${dakId}`);
-      setViewFiles(res.data.files); // array of { url, originalName }
-      setViewOpen(true);
-    } catch (err) {
-      toast.error("Failed to load PDFs");
-    }
-  };
-
   const columns = [
-    {
-      name: "Sno",
-      selector: (row) => row.sno,
-      sortable: true,
-      wrap: true,
-    },
     {
       name: "Dak ID",
       selector: (row) => row.mail_id,
@@ -173,32 +139,15 @@ export default function DakReports() {
       name: "Letter Number",
       selector: (row) => row.letterNumber || "",
       sortable: true,
-      wrap: true,
     },
-    {
-      name: "Lab",
-      selector: (row) => row.lab || "",
-      sortable: true,
-    },
-    {
-      name: "Source",
-      selector: (row) => row.source || "",
-      sortable: true,
-    },
-    {
-      name: "Status",
-      selector: (row) => row.status || "",
-      sortable: true,
-      wrap: true,
-    },
+    { name: "Lab", selector: (row) => row.lab || "", sortable: true },
+    { name: "Source", selector: (row) => row.source || "", sortable: true },
+    { name: "Status", selector: (row) => row.status || "", sortable: true },
 
     ...(hasPermission("FORWARD")
       ? [
           {
             name: "Forward",
-            selector: (row) => row.status || "",
-            sortable: true,
-            wrap: true,
             cell: (row) => (
               <button
                 onClick={() => {
@@ -207,24 +156,14 @@ export default function DakReports() {
                 }}
                 className="mb-1 px-3 py-1 bg-green-700 text-white rounded text-sm hover:bg-green-800"
                 disabled={
-                  row.status === "uploaded" ||
-                  row.status === "returned_to_head" ||
-                  row.status === "sent_to_head"
-                    ? false
-                    : true
-                }
-                hidden={
-                  (row.status === "uploaded" ||
-                    row.status === "sent_to_head") &&
-                  hasPermission("FORWARD-HEAD") &&
-                  row?.sentTo
-                    ? true
-                    : false
+                  !["uploaded", "returned_to_head", "sent_to_head"].includes(
+                    row.status
+                  )
                 }
               >
-                {row.status === "uploaded" ||
-                row.status === "returned_to_head" ||
-                row.status === "sent_to_head"
+                {["uploaded", "returned_to_head", "sent_to_head"].includes(
+                  row.status
+                )
                   ? "Select"
                   : "Forwarded"}
               </button>
@@ -237,14 +176,12 @@ export default function DakReports() {
       name: "Sent To",
       selector: (row) => row.receivedBy?.name || "",
       sortable: true,
-      wrap: true,
     },
     {
       name: "Forwarded To",
-      sortable: true,
       cell: (row) => (
         <p className={row.forwardedTo?.name ? "" : "text-red-600"}>
-          {row.forwardedTo?.name || "Not forwarded to anyone"}
+          {row.forwardedTo?.name || "Not forwarded"}
         </p>
       ),
     },
@@ -256,108 +193,88 @@ export default function DakReports() {
     {
       name: "Actions",
       cell: (row) => (
-        <div className="">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setTrackingDakId(row._id)}
-            className="mb-1 px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700"
+            className="px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700"
           >
             Track
           </button>
           <button
             onClick={() => downloadAllPDFs(row._id)}
-            className="mb-1 px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
+            className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
           >
             Download
           </button>
           <button
             onClick={() => handleViewFiles(row._id)}
-            className="mb-1 px-3 py-1 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700"
+            className="px-3 py-1 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700"
           >
             View
           </button>
-          {localStorage.getItem("role") === "user" ? (
+          {localStorage.getItem("role") === "user" && !row.isReturned && (
             <button
               onClick={() => setReturnId(row._id)}
-              hidden={row.isReturned ? true : false}
-              className="mb-1 px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
+              className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
             >
               Return
             </button>
-          ) : (
-            ""
           )}
         </div>
       ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
     },
   ];
 
   const customStyles = {
-    cells: {
-      style: {
-        paddingLeft: "6px",
-        paddingRight: "6px",
-      },
-    },
-    headCells: {
-      style: {
-        paddingLeft: "6px",
-        paddingRight: "6px",
-      },
-    },
+    cells: { style: { padding: "6px" } },
+    headCells: { style: { padding: "6px", fontWeight: "600" } },
   };
 
   return (
     <div className="p-4 border rounded bg-gray-50">
       <h2 className="text-xl font-semibold mb-4">Dak Reports</h2>
 
+      {/* Top Controls */}
       <div className="flex flex-wrap gap-2 mb-4">
         <button
           onClick={() => fetchReports("received")}
           disabled={loading}
-          hidden={localStorage.getItem("role") === "distributor" ? true : false}
+          hidden={localStorage.getItem("role") === "distributor"}
           className={`px-4 py-1 rounded ${
             type === "received" ? "bg-blue-700" : "bg-blue-600"
           } text-white`}
         >
-          {loading && type === "received" ? (
+          {loading && type === "received" && (
             <FaSpinner className="animate-spin inline mr-2" />
-          ) : null}
+          )}
           Received
         </button>
 
         <button
           onClick={() => fetchReports("sent")}
           disabled={loading}
-          hidden={localStorage.getItem("role") === "user" ? true : false}
+          hidden={localStorage.getItem("role") === "user"}
           className={`px-4 py-1 rounded ${
             type === "sent" ? "bg-green-700" : "bg-green-600"
           } text-white`}
         >
-          {loading && type === "sent" ? (
+          {loading && type === "sent" && (
             <FaSpinner className="animate-spin inline mr-2" />
-          ) : null}
+          )}
           Sent
         </button>
 
         <button
           onClick={() => fetchReports("upload")}
           disabled={loading}
-          hidden={
-            localStorage.getItem("role") === "user" ||
-            localStorage.getItem("role") === "head"
-              ? true
-              : false
-          }
+          hidden={["user", "head"].includes(localStorage.getItem("role"))}
           className={`px-4 py-1 rounded ${
             type === "upload" ? "bg-purple-700" : "bg-purple-600"
           } text-white`}
         >
-          {loading && type === "upload" ? (
+          {loading && type === "upload" && (
             <FaSpinner className="animate-spin inline mr-2" />
-          ) : null}
+          )}
           Uploaded
         </button>
 
@@ -379,20 +296,20 @@ export default function DakReports() {
         />
       </div>
 
-      {/* Table Container */}
+      {/* Table */}
       <div className="overflow-x-auto border rounded">
-        <div className="min-w-[1000px] max-h-[500px] overflow-y-auto">
-          <DataTable
-            columns={columns}
-            data={filteredReports}
-            pagination
-            highlightOnHover
-            dense
-            persistTableHead
-            responsive={false}
-            customStyles={customStyles}
-          />
-        </div>
+        <DataTable
+          columns={columns}
+          data={filteredReports}
+          pagination
+          highlightOnHover
+          dense
+          persistTableHead
+          responsive
+          customStyles={customStyles}
+          progressPending={loading}
+          noDataComponent="No Dak Reports found."
+        />
       </div>
 
       {/* Tracking Modal */}
@@ -412,7 +329,8 @@ export default function DakReports() {
           </div>
         </div>
       )}
-      {/* Forward Dak Modal */}
+
+      {/* Forward Modal */}
       {forwardId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg">
@@ -433,32 +351,19 @@ export default function DakReports() {
         </div>
       )}
 
-      {returnId !== null && (
+      {/* Return Modal */}
+      {returnId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">Return Dak</h3>
-              <button
-                onClick={() => setReturnId(null)}
-                className="text-gray-500 hover:text-black"
-              >
-                ✕
-              </button>
-            </div>
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4">Return Dak</h3>
             <form onSubmit={returnHead} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium">
-                  Return with Reason
-                </label>
-                <textarea
-                  value={returnReason}
-                  onChange={(e) => setReturnReason(e.target.value)}
-                  className="border p-3 rounded w-full mb-4"
-                  rows={4}
-                  placeholder="Enter your reason here..."
-                ></textarea>
-              </div>
-
+              <textarea
+                value={returnReason}
+                onChange={(e) => setReturnReason(e.target.value)}
+                className="border p-3 rounded w-full"
+                rows={4}
+                placeholder="Enter your reason here..."
+              />
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
@@ -472,7 +377,7 @@ export default function DakReports() {
                   disabled={loading}
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
-                  {loading ? "Saving..." : "Sent"}
+                  {loading ? "Saving..." : "Send"}
                 </button>
               </div>
             </form>
@@ -480,6 +385,7 @@ export default function DakReports() {
         </div>
       )}
 
+      {/* View Files Modal */}
       {viewOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 overflow-auto">
           <div className="bg-white p-6 rounded shadow-lg w-full max-w-4xl max-h-screen overflow-y-auto">
@@ -492,12 +398,11 @@ export default function DakReports() {
                 ✕
               </button>
             </div>
-
             {viewFiles.length === 0 ? (
               <p>No files found</p>
             ) : (
-              viewFiles.map((file, index) => (
-                <div key={index} className="mb-6">
+              viewFiles.map((file, idx) => (
+                <div key={idx} className="mb-6">
                   <h4 className="font-medium mb-2">{file.originalName}</h4>
                   <iframe
                     src={base + file.url}
@@ -505,7 +410,7 @@ export default function DakReports() {
                     width="100%"
                     height="600px"
                     className="border"
-                  ></iframe>
+                  />
                 </div>
               ))
             )}
